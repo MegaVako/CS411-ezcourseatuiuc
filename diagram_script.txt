@@ -1,0 +1,45 @@
+# Modify this code to update the DB schema diagram.
+# To reset the sample schema, replace everything with
+# two dots ('..' - without quotes).
+
+Students
+-
+netid PK varchar(10)
+department string INDEX
+
+Courses
+-
+crn PK int
+requirement_type varchar(10)
+area varchar(20)
+semester varchar(10)
+
+Teach
+-
+instructor_name varchar(20) FK >- Instructors.instructor_name
+crn int FK >- Courses.crn
+semester varchar(10) FK >- Courses.semester
+part_of_term varchar(10)
+date_start date
+date_end date
+time_start time
+time_end time
+location varchar(20)
+lecture_type varchar(20)
+avg_gpa float
+
+
+Instructors
+-
+instructor_name PK varchar(20)
+department PK varchar(10)
+
+Voted
+-
+netid varchar(10) FK >- Students.netid
+crn int FK >- Courses.crn
+difficulty int
+rating varchar(20)
+take_again boolean
+current_status varchar(20)
+grade int
