@@ -10,6 +10,7 @@ course_code int PK
 semester varchar(2) PK
 year int PK
 requirement_type varchar(10)
+requirement_fulfill varchar(20)
 course_description varchar(1200)
 
 Teach
