@@ -1,45 +1,52 @@
-# Modify this code to update the DB schema diagram.
-# To reset the sample schema, replace everything with
-# two dots ('..' - without quotes).
-
 Students
--
-netid PK varchar(10)
-department string INDEX
+--
+netid varchar(10) PK
+department varchar(4) INDEX
 
 Courses
--
-crn PK int
+--
+department varchar(4) PK
+course_code int PK
+semester varchar(2) PK
+year int PK
 requirement_type varchar(10)
-area varchar(20)
-semester varchar(10)
+course_description varchar(1200)
 
 Teach
--
-instructor_name varchar(20) FK >- Instructors.instructor_name
-crn int FK >- Courses.crn
-semester varchar(10) FK >- Courses.semester
+--
+crn int PK
+prof_fname varchar(20) FK >- Instructors.prof_fname
+prof_lname varchar(20) FK >- Instructors.prof_lname
+department varchar(4) FK >- Courses.department
+course_code int FK >- Courses.course_code
+semester varchar(2) FK >- Courses.semester
+year int FK >- Courses.year
+credit_hour int
 part_of_term varchar(10)
 date_start date
 date_end date
 time_start time
 time_end time
 location varchar(20)
+room_num varchar(10)
 lecture_type varchar(20)
 avg_gpa float
 
-
 Instructors
--
-instructor_name PK varchar(20)
-department PK varchar(10)
+--
+prof_fname varchar(20) PK
+prof_lname varchar(20) PK
+department varchar(10) PK
 
 Voted
--
+--
 netid varchar(10) FK >- Students.netid
-crn int FK >- Courses.crn
+department varchar(4) FK >- Courses.department
+course_code int FK >- Courses.course_code
+semester varchar(2) FK >- Courses.semester
+year int FK >- Courses.year
 difficulty int
-rating varchar(20)
-take_again boolean
+recommand int
+comment varchar(100)
 current_status varchar(20)
 grade int
