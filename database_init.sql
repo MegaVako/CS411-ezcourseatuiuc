@@ -12,6 +12,7 @@ CREATE TABLE `Courses` (
     `semester` varchar(2)  NOT NULL ,
     `year` int  NOT NULL ,
     `requirement_type` varchar(10)  NOT NULL ,
+    `requirement_fulfill` varchar(20) NOT NULL,
     `course_description` varchar(1200)  NOT NULL ,
     PRIMARY KEY (
         `department`,`course_code`,`semester`,`year`
@@ -77,3 +78,4 @@ REFERENCES `Courses` (`department`, `course_code`, `semester`, `year`);
 
 CREATE INDEX `idx_Students_department`
 ON `Students` (`department`);
+
