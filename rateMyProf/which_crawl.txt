@@ -1,0 +1,29 @@
+miss FA2019
+miss SP2019
+
+FA2018 log
+{'downloader/request_bytes': 6872705,
+ 'downloader/request_count': 15730,
+ 'downloader/request_method_count/GET': 15730,
+ 'downloader/response_bytes': 25997442,
+ 'downloader/response_count': 15730,
+ 'downloader/response_status_count/200': 15729,
+ 'downloader/response_status_count/302': 1,
+ 'elapsed_time_seconds': 38367.594931,
+ 'finish_reason': 'finished',
+ 'finish_time': datetime.datetime(2020, 7, 22, 6, 5, 1, 903673),
+ 'item_scraped_count': 15742,
+ 'log_count/DEBUG': 88011,
+ 'log_count/ERROR': 1,
+ 'log_count/INFO': 650,
+ 'memusage/max': 44687360,
+ 'memusage/startup': 38903808,
+ 'request_depth_max': 3,
+ 'response_received_count': 15729,
+ 'scheduler/dequeued': 15730,
+ 'scheduler/dequeued/memory': 15730,
+ 'scheduler/enqueued': 15730,
+ 'scheduler/enqueued/memory': 15730,
+ 'spider_exceptions/ValueError': 1,
+ 'start_time': datetime.datetime(2020, 7, 21, 19, 25, 34, 308742)}
+2020-07-22 01:05:01 [scrapy.core.engine] INFO: Spider closed (finished)

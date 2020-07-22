@@ -6,7 +6,7 @@ from scrapy.spiders import XMLFeedSpider
 class profCourseExplorer(XMLFeedSpider):
     name = "profCourseExplorer"
     allowed_domains = ["courses.illinois.edu"]
-    year = str(2019)
+    year = str(2018)
     semester = "fall"
     base_url = "http://courses.illinois.edu/cisapp/explorer/schedule/{year}/{semester}.xml"
     url = base_url.format(year = year, semester = semester)
@@ -44,7 +44,7 @@ class profCourseExplorer(XMLFeedSpider):
         self.logger.debug("start parse subj <++++++++++++++++++++++++++++++++++")
 
         # parse gened
-        course_gened = response.xpath('//category[@id]').getall()
+        course_gened = response.xpath('//category[@id]//@id').getall() # <-- TODO fix
         course_gened_str = ''
         if len(course_gened) != 0:
             self.logger.debug("FOUND gened<++++++++++++++++++++++++++++++++++++")
