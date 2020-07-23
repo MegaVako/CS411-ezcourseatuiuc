@@ -6,8 +6,8 @@ from scrapy.spiders import XMLFeedSpider
 class profCourseExplorer(XMLFeedSpider):
     name = "profCourseExplorer"
     allowed_domains = ["courses.illinois.edu"]
-    year = str(2018)
-    semester = "fall"
+    year = str(2019)
+    semester = "spring"
     base_url = "http://courses.illinois.edu/cisapp/explorer/schedule/{year}/{semester}.xml"
     url = base_url.format(year = year, semester = semester)
 
@@ -15,16 +15,13 @@ class profCourseExplorer(XMLFeedSpider):
     itertag = 'subject'
         
     def parse_node(self, response, node):
-        self.logger.debug("start parse node <+++++++++++++++++++++++")
         subjName = node.xpath(".//@id").get()
         link = node.xpath(".//@href").get()
         self.logger.debug(subjName)
         self.logger.debug(link)
         yield scrapy.Request(link, callback = self.parse_subj, meta={'subject_name': subjName})
-        self.logger.debug("end parse node <+++++++++++++++++++++++++")
 
     def parse_subj(self, response):
-        self.logger.debug("start parse subj <+++++++++++++++++++++++++++")
         for course in response.xpath("//course[@id]"):
             courseNum = course.xpath(".//@id").get()
             courseLink = course.xpath(".//@href").get()
@@ -38,11 +35,8 @@ class profCourseExplorer(XMLFeedSpider):
                     'course_num': courseNum,
                     'course_tittle': courseTittle}
             )
-        self.logger.debug("end parse subj <+++++++++++++++++++++++++++++")
         
     def parse_course(self, response):
-        self.logger.debug("start parse subj <++++++++++++++++++++++++++++++++++")
-
         # parse gened
         course_gened = response.xpath('//category[@id]//@id').getall() # <-- TODO fix
         course_gened_str = ''
@@ -75,7 +69,6 @@ class profCourseExplorer(XMLFeedSpider):
                         'course_gened': course_gened_str
                         }
             )
-        self.logger.debug("end parse subj <++++++++++++++++++++++++++++++++++++")
 
     def parse_section(self, response):
         section_type = response.xpath("//type[@code]/text()").get()
@@ -84,7 +77,6 @@ class profCourseExplorer(XMLFeedSpider):
         
         #elif ('Lecture' in section_type):
         else:
-            self.logger.debug("each section start <======================================")
             item = RatemyprofItem()
 
             for prof in response.xpath('.//instructor'):
@@ -114,7 +106,6 @@ class profCourseExplorer(XMLFeedSpider):
                 item['course_term'] = response.xpath("//partOfTerm/text()").get()
 
                 yield item
-            self.logger.debug("each section end <======================================")
         #else:
             #self.logger.debug("NOT A LEC")
             #self.logger.debug(section_type)
