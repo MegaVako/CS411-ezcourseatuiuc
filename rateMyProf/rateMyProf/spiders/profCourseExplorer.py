@@ -6,8 +6,8 @@ from scrapy.spiders import XMLFeedSpider
 class profCourseExplorer(XMLFeedSpider):
     name = "profCourseExplorer"
     allowed_domains = ["courses.illinois.edu"]
-    year = str(2019)
-    semester = "spring"
+    year = str(2018)
+    semester = "fall"
     base_url = "http://courses.illinois.edu/cisapp/explorer/schedule/{year}/{semester}.xml"
     url = base_url.format(year = year, semester = semester)
 
@@ -38,7 +38,7 @@ class profCourseExplorer(XMLFeedSpider):
         
     def parse_course(self, response):
         # parse gened
-        course_gened = response.xpath('//category[@id]//@id').getall() # <-- TODO fix
+        course_gened = response.xpath('//category[@id]//@id').getall()
         course_gened_str = ''
         if len(course_gened) != 0:
             self.logger.debug("FOUND gened<++++++++++++++++++++++++++++++++++++")
@@ -100,7 +100,12 @@ class profCourseExplorer(XMLFeedSpider):
                 item['course_hour_start'] = response.xpath("//start/text()").get()
                 item['course_hour_end'] = response.xpath("//end/text()").get()
                 item['course_date_start'] = response.xpath("//startDate/text()").get()
+                if item['course_date_start'] != None:
+                    item['course_date_start'] = item['course_date_start'][:-1] # remove last char 'Z'
                 item['course_date_end'] = response.xpath("//endDate/text()").get()
+                if item['course_date_end'] != None:
+                    item['course_date_end'] = item['course_date_end'][:-1] # remove last char 'Z'
+                item['course_dayOfWeek'] = response.xpath("//daysOfTheWeek/text()").get()
                 item['course_location'] = response.xpath("//buildingName/text()").get()
                 item['course_room_num'] = response.xpath("//roomNumber/text()").get()
                 item['course_term'] = response.xpath("//partOfTerm/text()").get()

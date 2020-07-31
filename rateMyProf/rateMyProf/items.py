@@ -31,6 +31,7 @@ class RatemyprofItem(scrapy.Item):
     course_hour_end = scrapy.Field()
     course_date_start = scrapy.Field()
     course_date_end = scrapy.Field()
+    course_dayOfWeek = scrapy.Field()
     course_location = scrapy.Field()
     course_room_num = scrapy.Field()
     course_term = scrapy.Field()
