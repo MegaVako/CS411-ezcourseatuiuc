@@ -6,7 +6,7 @@ from scrapy.spiders import XMLFeedSpider
 class profCourseExplorer(XMLFeedSpider):
     name = "profCourseExplorer"
     allowed_domains = ["courses.illinois.edu"]
-    year = str(2018)
+    year = str(2020)
     semester = "fall"
     base_url = "http://courses.illinois.edu/cisapp/explorer/schedule/{year}/{semester}.xml"
     url = base_url.format(year = year, semester = semester)
