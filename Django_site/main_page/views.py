@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.template import loader
-from .func.mysql_func import form_query, execute_query, parse_raw_result, parse_semesterNyear, form_edit
+from .func.mysql_func import form_query, execute_query, parse_raw_result, parse_semesterNyear, form_edit, parse_subjNnum
 from .forms import CourseForm, GenedForm, VoteForm, VoteInitForm, UpdateForm
 from django.http import HttpResponse
 
@@ -51,7 +51,9 @@ def course_page(request):
                         page = "course_page.html"
                         
                         #assume this pass because it passed course_query
-                        context['base_info'] = {"department": input_str[:-3], "course_num": input_str[-3:]}
+                        subjNnum = parse_subjNnum(input_str)
+                        #TODO set correct prof for next semester
+                        context['base_info'] = {"department": subjNnum['department'], "course_num": subjNnum['number']}
                         context['course_info'] = course_parsed_result['parsed_result']
                         context['teach_info'] = teach_parsed_result['parsed_result']
                         context['vote_info'] = vote_parsed_result['parsed_result']
@@ -196,6 +198,11 @@ def thanks_page(request):
     return render(request, page, context)
 
 #===================================================================================
+def cart_page(request):
+    #TODO validate course exist
+    if "check_course" in request.GET:
+        return HttpResponse("GET received")
+
+#===================================================================================
 def schedule_page(request):
-    pass
 

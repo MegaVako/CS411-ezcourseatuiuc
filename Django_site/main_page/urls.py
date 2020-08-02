@@ -10,4 +10,5 @@ urlpatterns = [
     path('update/', views.update_page),
     path('thanks/', views.thanks_page),
     path('schedule/', views.schedule_page),
+    path('cart/', views.cart_page),
 ]

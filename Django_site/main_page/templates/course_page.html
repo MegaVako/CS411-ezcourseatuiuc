@@ -4,6 +4,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <style>
   body,
   h1 {
@@ -20,7 +21,21 @@
 </style>
 
 </head><body>
-
+    <div  class="w3-sidebar w3-bar-block w3-card w3-animate-left w3-blue w3-large" style="display:none;left:0;" id="leftMenu">
+      <button onclick="closeRightMenu()" class="w3-bar-item w3-button w3-large">Close &times;</button>
+      <button onclick="closeRightMenu()" class="w3-bar-item w3-button w3-large">Close &times;</button>
+      <form action="https://easycourseatuiuc.web.illinois.edu/main_page/" >
+        <p class="w3-padding-16"><input formtarget="_blank" class="w3-button w3-black" type="submit" value="search more"><i class="fa fa-search"></i></input></p>
+      </form>
+      <div class="w3-container"id="courseCheckBoxContainer">
+      <!-- Insert cart in here DEBUG -->
+      </div>
+      <p id="clearBtn" class="w3-padding-16"><button class="w3-button w3-black" onclick="" type="button">Apply changes</button></p>
+      <p id="clearBtn" class="w3-padding-16"><button class="w3-button w3-black" onclick="clearCart()" type="button">Clear cart</button></p>
+      <form class="cart_form" method="GET" action="/main_page/schedule">
+        <p class="w3-padding-16"><button class="w3-button w3-black" formtarget="_blank" type="submi">Go to schedule</button></p>
+      </form>
+    </div>
     <!-- Navbar -->
     <div class="w3-top">
     <div class="w3-bar w3-red w3-card w3-left-align w3-large">
@@ -28,6 +43,7 @@
     <a href="http://easycourseatuiuc.web.illinois.edu/" class="w3-bar-item w3-button w3-padding-large w3-white">Home</a>
     <a href="mailto:yans3@illinois.edu" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Contact Us</a>
     <a href="http://illinois.edu/"><img src="https://campusrec.illinois.edu/wp-content/uploads/2017/08/block-I-icon-512x512-300x300.png" style="width:42px;height:50px;"></a>
+    <button class="w3-button w3-teal w3-xlarge w3-right" onclick="openRightMenu()" style="font-size:24px">Edit Cart<i class="fa fa-shopping-cart"></i></button>
     </div>
 
     <!-- Navbar on small screens -->
@@ -51,10 +67,6 @@
         
       <p><b>Gened: {{ course_info.0.requirement_fulfill }} </b></p>
         <p class="w3-padding-16"><button class="w3-button w3-black" onclick="addToCart()" type="button">Add to my cart</button></p>
-        <p class="w3-padding-16"><button class="w3-button w3-black" onclick="setCookie(&#39;course&#39;, &#39;&#39;, 1)" type="button">Clear cart</button></p>
-        <form class="cart_form" method="GET" action="/main_page/schedule">
-          <p class="w3-padding-16"><button class="w3-button w3-black" formtarget="_blank" type="submi">Go to cart</button></p>
-        </form>
       </header>
     </div>
 
@@ -104,7 +116,7 @@
     <div class="w3-container">
       <table class="w3-table w3-striped w3-bordered w3-hoverable">
     {% if vote_info|length > 0 %} 
-        <tbody><tr>
+        <tr>
           <th>Term</th>
           <th>Grade</th>
           <th>Difficulty</th>
@@ -123,8 +135,7 @@
         <h3 class="w3-center">No opinion for now</h3>
     {% endif %}    
         </tr>
-      
-     </tbody></table>
+     </table>
     </div>
     <form class="vote_form w3-center" method="GET" action="/main_page/vote/">
     <input name="dept" style="visibility:hidden; position:absolute" type="text" value="{{ base_info.department }}">
@@ -146,8 +157,16 @@
 
   </footer>
   <script>
+    function openRightMenu() {
+      document.getElementById("leftMenu").style.display = "block";
+      onChangeCart();
+    }
+
+    function closeRightMenu() {
+      document.getElementById("leftMenu").style.display = "none";
+    }
     function addToCart() {
-      var course = "{{ base_info.department }}{{ base_info.course_num }]";
+      var course = "{{ base_info.department }}{{ base_info.course_num }}";
       var xhttp = new XMLHttpRequest();
       console.log("cart btn clicked");
       xhttp.onreadystatechange = function() {
@@ -162,6 +181,7 @@
             if (old_course.localeCompare("") == 0) { // == 0 for eq
               // create new
               setCookie("course", course, 1); // cookie expire in 1 day
+              onChangeCart();
             } else {
               // edit old
               found = "FOUND"
@@ -173,18 +193,45 @@
                   break;
                 }
               }
-              if (!repeat_flag) setCookie("course", course + "|" + old_course, 1);
+              if (!repeat_flag) {
+                setCookie("course", course + "|" + old_course, 1);
+                onChangeCart();
+              }
             }
             document.getElementById("DEBUG").innerHTML = document.cookie + " " + found;
           }
         }
       };
       // check exist in curr semester
-      xhttp.open("GET", "/main_page/cart/?course=" + course, true);
+      xhttp.open("GET", "/main_page/cart/?check_course=" + course, true);
       xhttp.send();
     }
     function updateCart() {
          
+    }
+    function clearCart() {
+      var a = setCookie("course", "", 1);
+      jQuery(".courseInCart").remove();
+    }
+    function onChangeCart() {
+      console.log("onChange");
+      jQuery(".courseInCart").remove();
+      var curr_course_arr = getCookie("course");
+      var courseCheckBoxContainer = document.getElementById("courseCheckBoxContainer")
+      var innerElem = ""
+      if (curr_course_arr.localeCompare("") != 0) { // == 0 for eq
+        var each_course = curr_course_arr.split("|");
+        for (var i = 0; i < each_course.length; i++) {
+          innerElem += "<p class='courseInCart'><input name=" + each_course[i] + " class='w3-check courseInCart' type='checkbox'><label class='w3-text-black courseInCart'>" + each_course[i] + "</label></p>";
+        }
+        courseCheckBoxContainer.innerHTML = innerElem;
+        var checkboxes = document.getElementsByTagName('input');
+        for (var i = 0; i < checkboxes.length; i++) {
+          if (checkboxes[i].type == "checkbox") {
+            checkboxes[i].checked = true;
+          }
+        }
+      }
     }
     function getCookie(cname) {
         var name = cname + "=";
@@ -206,6 +253,10 @@
       d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
       var expires = "expires="+d.toUTCString();
       document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+      if (cvalue.localeCompare("") == 0) {
+        alert("Your cart has been cleared")
+        document.getElementById("DEBUG").innerHTML = document.cookie + " " + "curr";
+      }
     }
   </script>
 
