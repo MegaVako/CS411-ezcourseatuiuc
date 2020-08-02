@@ -105,6 +105,7 @@
       <table class="w3-table w3-striped w3-bordered w3-hoverable">
     {% if vote_info|length > 0 %} 
         <tbody><tr>
+          <th>Term</th>
           <th>Grade</th>
           <th>Difficulty</th>
           <th>Recommand</th>
@@ -112,6 +113,7 @@
         </tr>
        {% for v in vote_info %} 
         <tr>
+          <td>{{ v.semester }} {{ v.year }}</td>
           <td>{{ v.grade }}</td>
           <td>{{ v.difficulty }}</td>
           <td>{{ v.recommand }}</td>
@@ -128,6 +130,11 @@
     <input name="dept" style="visibility:hidden; position:absolute" type="text" value="{{ base_info.department }}">
     <input name="num" style="visibility:hidden; position:absolute" type="text" value="{{ base_info.course_num }}">
       <p class="w3-padding-16"><button class="w3-button w3-black" name="insert_opinion" formtarget="_blank" type="submit">Share my opinion</button></p>
+    </form>
+
+    <form class="vote_form w3-center" method="GET" action="/main_page/update/">
+    <input name="dept" style="visibility:hidden; position:absolute" type="text" value="{{ base_info.department }}">
+    <input name="num" style="visibility:hidden; position:absolute" type="text" value="{{ base_info.course_num }}">
       <p class="w3-padding-16"><button class="w3-button w3-black" name="update_opinion" formtarget="_blank" type="submit">Edit my opinion</button></p>
     </form>
   </div>
@@ -140,7 +147,7 @@
   </footer>
   <script>
     function addToCart() {
-      var course = "CS101";
+      var course = "{{ base_info.department }}{{ base_info.course_num }]";
       var xhttp = new XMLHttpRequest();
       console.log("cart btn clicked");
       xhttp.onreadystatechange = function() {

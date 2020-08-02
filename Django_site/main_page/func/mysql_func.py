@@ -10,21 +10,23 @@ def parse_subjNnum(input_str):
     msg = "ok"
     input_str = input_str.upper()
 
-    for c in input_str[:-3]:
+    for c in input_str:
         if c.isalpha():
             subject += c
         else:
-            msg = "failed"
+            break;
     if input_str[-3:].isdigit():
         number = input_str[-3:] 
     else:
+        msg = "failed"
+    if len(subject) < 2:
         msg = "failed"
     return {"department": subject, "number": number, "msg": msg}
 
 course_select = ["department", "course_num", "semester", "year", "title", "requirement_fulfill", "course_description"]
 gened_select = ["department", "course_num", "tittle", "requirement_fulfill", "avg_gpa"]
 teach_select = ["prof_fname", "prof_lname", "semester", "year", "avg_gpa"]
-vote_select = ["difficulty", "recommand", "comment", "grade"]
+vote_select = ["difficulty", "recommand", "comment", "grade", "semester", "year"]
 
 #
 # parse function for query
@@ -165,14 +167,14 @@ def parse_raw_result(raw_result, parse_on):
                 curr_dict[attri] = row[counter]
                 counter += 1
             if requirement_fulfill:
-                if curr_dict['requirement_fulfill'] == None:
+                if curr_dict['requirement_fulfill'] == None or curr_dict['requirement_fulfill'] == "":
                     curr_dict['requirement_fulfill'] = "(Not a gened)"
 
             result_arr.append(curr_dict)
     
     return {"parsed_result": result_arr, "msg": msg, "ok": ok}
 
-def parse_sememsterNyear(input_str):
+def parse_semesterNyear(input_str):
     ok = True
     semester = ""
     year = ""
@@ -192,7 +194,7 @@ def parse_sememsterNyear(input_str):
         msg = "Not recognized semester"
 
     if input_str[-2:].isdigit():
-        year = input_str[-2:]
+        year = str(int(input_str[-2:]) + 2000)
     else:
         ok = False
         msg = "Not recognized year"
@@ -207,7 +209,7 @@ def form_edit(input_data, edit_on):
     ok = True
     msg = ""
     default_operation = ""
-    default_table = ""
+    default_table = "Voted"
     default_condition = ""
 
     if edit_on == "insert_vote":
@@ -227,16 +229,32 @@ def form_edit(input_data, edit_on):
         default_condition = default_condition.format(value=curr_condition)
         
     elif edit_on == "update_vote":
-        default_operation = "UDPATE"
-        default_table = "Voted"
+        default_operation = "UPDATE"
         default_condition = "SET {attri} WHERE {condition}"
-        pass
+        has_prev = False
+        curr_set = ""
+        for attri in vote_attri:
+            if has_prev:
+                curr_set += ", "
+            if input_data[attri].isdigit():
+                curr_set += (attri + "=" + str(input_data[attri]))
+            else:
+                curr_set += (attri + "='" + str(input_data[attri]) + "'")
+            has_prev = True
+        curr_condition = (" netid='" + input_data['netid'] + 
+            "' AND course_num=" + input_data['course_num'] + 
+            " AND department='" + input_data['department'] + "'")
+        default_condition = default_condition.format(attri=curr_set, condition=curr_condition)
 
     elif edit_on == "delete_vote":
-        pass
+        default_operation = "DELETE FROM"
+        default_condition = ("WHERE netid='" + input_data['netid'] + 
+            "' AND course_num=" + input_data['course_num'] + 
+            " AND department='" + input_data['department'] + "'")
 
     else:
-        pass
+        ok = False
+        msg = "edit_on not implimented"
 
     return {"query": base_edit.format(operation=default_operation, table=default_table, condition=default_condition), "msg": msg, "ok": ok}
 
