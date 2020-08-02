@@ -1,7 +1,7 @@
 from django import forms
 
 class CourseForm(forms.Form):
-    search_input = forms.CharField(max_length=5)
+    search_input = forms.CharField(max_length=7)
 
 class GenedForm(forms.Form):
     SBS = forms.BooleanField(required=False)

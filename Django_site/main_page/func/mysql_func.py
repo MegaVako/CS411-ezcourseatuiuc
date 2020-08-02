@@ -1,6 +1,6 @@
 from django.db import connection
 from django.db import IntegrityError
-
+import traceback
 
 def parse_subjNnum(input_str):
     # example CS101
@@ -9,42 +9,44 @@ def parse_subjNnum(input_str):
     msg = "ok"
     input_str = input_str.upper()
 
-    for c in input_str[:2]:
+    for c in input_str[:-3]:
         if c.isalpha():
             subject += c
         else:
             msg = "failed"
     if input_str[-3:].isdigit():
-        number = input_data[-3:] 
+        number = input_str[-3:] 
     else:
         msg = "failed"
-    return {"subject": subject, "number": number, "msg": msg}
+    return {"department": subject, "number": number, "msg": msg}
 
 course_select = ["department", "course_num", "semester", "year", "title", "requirement_fulfill", "course_description"]
-gened_select = [""]
-teach_select = [""]
-vote_select = [""]
-base_query = "SELECT {attri} FROM {table} WHERE {condition} {order} {limit}"
-default_attri = "*"
-default_table = "FA2020"
-default_condition = "1"
-default_order = ""
-default_limit = "LIMIT 20"
+gened_select = ["department", "course_num", "tittle", "requirement_fulfill", "avg_gpa"]
+teach_select = ["prof_fname", "prof_lname", "semester", "year", "avg_gpa"]
+vote_select = ["difficulty", "recommand", "comment", "grade"]
 #
 # parse function for query
 #
 def form_query(input_data, query_on):
+    base_query = "SELECT {attri} FROM {table} WHERE {condition} {order} {limit}"
+    default_attri = "*"
+    default_table = "FA2020"
+    default_condition = "1"
+    default_order = ""
+    default_limit = "LIMIT 20"
+
     query = base_query
     select_arr = None
     extra_buffer = ""
     extra_ending = ""
     msg = "ok"
+    ok = True
+
     # expect a string len = 5
     if query_on == "course":
         parse_input = parse_subjNnum(input_data)
-        ok = True
         if parse_input['msg'] == "failed":
-            msg = "failed"
+            msg = "failed, on parse_subjNnum"
             ok = False
         else:
             select_arr = course_select
@@ -65,19 +67,42 @@ def form_query(input_data, query_on):
         GROUP BY c.course_num, c.department
         ORDER BY AVG(t.avg_gpa) DESC
         '''
-        select_arr = gened_select
+        select_arr = gened_select[:-1] # compenstae for the extra_ending
         extra_buffer = 'c.'
         extra_ending = ", ROUND(AVG(t.avg_gpa), 2)"
         default_table = "Courses c LEFT OUTER JOIN Teach_test t ON (c.course_num = t.course_num AND c.department = t.department)"
+        default_condition = "c.year=2020 AND c.semester=fall"
+        #TODO finish condition
         #TODO add group/order
 
     #TODO
     elif query_on == "vote":
-        select_arr = vote_select
+        parse_input = parse_subjNnum(input_data)
+        if parse_input['msg'] == "failed":
+            msg = "failed, on parse_subjNnum"
+            ok = False
+        else:
+            select_arr = vote_select
+            default_table = "Voted"
+            base_condition = "course_num={num} AND department='{department}'"
+            default_condition = base_condition.format(num=parse_input['number'], department=parse_input['department'])
+            default_limit = ""
+
 
     #TODO
     elif query_on == "teach":
-        select_arr = teach_select
+        parse_input = parse_subjNnum(input_data)
+        if parse_input['msg'] == "failed":
+            msg = "failed, on parse_subjNnum"
+            ok = False
+        else:
+            select_arr = teach_select[:-1]
+            default_table = "Teach"
+            base_condition = "course_num={num} AND department='{department}'"
+            default_condition = base_condition.format(num=parse_input['number'], department=parse_input['department'])
+            #default_condition += " AND avg_gpa IS NOT NULL"
+            extra_ending = ", ROUND(avg_gpa, 2)"
+            default_order = " ORDER BY year DESC, semester"
 
     else:
         msg = "failed, query_on not implimented"
@@ -103,18 +128,22 @@ def execute_query(query):
         with connection.cursor() as cursor:
             cursor.execute(query)
             row = cursor.fetchall()
-    except IntegrityError as e:
-        return {"query": query, "msg": e.message + " failed", "ok": False}
+    except:
+        return {"query": query, "msg": str(traceback.format_exc()) + " failed " + str(query), "ok": False}
     finally:
         cursor.close()
-    return {"raw_result": row, "query": query, "ok": True}
+    return {"raw_result": row, "query": query, "msg": "ok", "ok": True}
 
-def parse_raw_result(raw_resulti, parse_on):
+def parse_raw_result(raw_result, parse_on):
     select_arr = None
     result_arr = []
     msg = "ok"
+    ok = True
+    requirement_fulfill = False
+
     if parse_on == "course":
         select_arr = course_select
+        requirement_fulfill = True
     elif parse_on == "vote":
         select_arr = vote_select
     elif parse_on == "teach":
@@ -130,8 +159,12 @@ def parse_raw_result(raw_resulti, parse_on):
             curr_dict = {}
             counter = 0
             for attri in select_arr:
-                curr_dict[attri] = select_arr[counter]
+                curr_dict[attri] = row[counter]
                 counter += 1
+            if requirement_fulfill:
+                if curr_dict['requirement_fulfill'] == None:
+                    curr_dict['requirement_fulfill'] = "(Not a gened)"
+
             result_arr.append(curr_dict)
     
     return {"parsed_result": result_arr, "msg": msg, "ok": ok}
