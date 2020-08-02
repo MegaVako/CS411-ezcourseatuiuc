@@ -205,4 +205,8 @@ def cart_page(request):
 
 #===================================================================================
 def schedule_page(request):
-
+    page = ""
+    context = {}
+    if request.method == "GET":
+        page = "schedule_page.html"
+    return render(request, page, context) 
