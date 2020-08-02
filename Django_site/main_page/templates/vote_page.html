@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>W3.CSS Template</title>
+<title>EasyCourse@uiuc</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
@@ -79,16 +79,16 @@
   </div>
   <div class="w3-card-4">
     <div class="w3-container w3-blue">
-      <h2 style="text-align:center;">VOTE FOR</h2>
+        <h2 style="text-align:center;">VOTE FOR {{ department }} {{ course_num }} </h2>
     </div>
-    <form class="w3-container" action="/action_page.php">
+    <form class="w3-container" method="POST" action="/main_page/thanks/">
+        <input type="hidden" name="department" value="{{ department }}">
+        <input type="hidden" name="course_num" value="{{ course_num }}">
+      {% csrf_token %}
       <p>
-        <label class="w3-text-brown"><b>1.your department (optional)</b></label>
-        <input class="w3-input w3-border w3-sand" name="last" type="text" placeholder="(e.g. PHYS)"></p>
-      <p>
-        <label class="w3-text-brown"><b>2.Semester</b></label>
-        <input class="w3-input w3-border w3-sand" name="last" type="text" placeholder="e.g. FA19"></p>
-      <p class="w3-text-brown"><b>3.current_status</b></p>
+      <label class="w3-text-brown"><b>Semester</b></label>
+        <input class="w3-input w3-border w3-sand" name="sememsterNyear" type="text" placeholder="e.g. FA19" maxlength="4" required></p>
+      <p class="w3-text-brown"><b>Current status</b></p>
       <div class="w3-row-padding">
         <div class="w3-third">
           <input class="w3-radio" type="radio" name="current_status" value="finished" checked>
@@ -100,8 +100,8 @@
         </div>
       </div>
       <div class="slidecontainer">
-        <label class="w3-text-brown"><b>64Your Grade in this course(being calculated as percentage, and please round to nearest integer) </b></label>
-        <input type="range" min="0" max="100" value="50" class="slider" id="grade">
+        <label class="w3-text-brown"><b>Estimated grade</b></label>
+        <input name="grade" type="range" min="0" max="100" value="50" class="slider" id="grade">
         <p>Grade: <span id="gradeid"></span></p>
         <script>
           var slider1 = document.getElementById("grade");
@@ -114,8 +114,8 @@
         </script>
       </div>
       <div class="slidecontainer">
-        <label class="w3-text-brown"><b>5.What is your recommandation level for this Course? </b></label>
-        <input type="range" min="0" max="10" value="5" class="slider" id="reco">
+        <label class="w3-text-brown"><b>Level of recommandation</b></label>
+        <input name="recommand" type="range" min="0" max="10" value="5" class="slider" id="reco">
         <p>Value: <span id="recoid"></span></p>
         <script>
           var slider2 = document.getElementById("reco");
@@ -128,8 +128,8 @@
         </script>
       </div>
       <div class="slidecontainer">
-        <label class="w3-text-brown"><b>6.How difficult you think of this course? </b></label>
-        <input type="range" min="0" max="10" value="5" class="slider" id="dif">
+        <label class="w3-text-brown"><b>Difficulty</b></label>
+        <input name="difficulty" type="range" min="0" max="10" value="5" class="slider" id="dif">
         <p>Value: <span id="difid"></span></p>
         <script>
           var slider = document.getElementById("dif");
@@ -142,16 +142,12 @@
         </script>
       </div>
       <p>
-        <label class="w3-text-brown"><b>7.Comment for this course</b></label>
-        <input class="w3-input w3-border w3-sand" name="last" type="text" placeholder="(Like advantage or disadvantage and suggestion to improve)"></p>
+        <label class="w3-text-brown"><b>Comments</b></label>
+        <input class="w3-input w3-border w3-sand" name="comment" type="text" placeholder="(Like advantage or disadvantage and suggestion to improve)" maxlength="1000"></p>
       <p>
-        <button class="w3-btn w3-brown">Submit</button></p>
+        <button class="w3-btn w3-brown" type=submit name="insert_opinion">Submit</button></p>
     </form>
   </div>
 
-
-
-
 </body>
-
 </html>

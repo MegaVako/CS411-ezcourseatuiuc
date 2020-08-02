@@ -2,6 +2,7 @@ from django.db import connection
 from django.db import IntegrityError
 import traceback
 
+#===================================================================================
 def parse_subjNnum(input_str):
     # example CS101
     subject = ""
@@ -24,9 +25,11 @@ course_select = ["department", "course_num", "semester", "year", "title", "requi
 gened_select = ["department", "course_num", "tittle", "requirement_fulfill", "avg_gpa"]
 teach_select = ["prof_fname", "prof_lname", "semester", "year", "avg_gpa"]
 vote_select = ["difficulty", "recommand", "comment", "grade"]
+
 #
 # parse function for query
 #
+#===================================================================================
 def form_query(input_data, query_on):
     base_query = "SELECT {attri} FROM {table} WHERE {condition} {order} {limit}"
     default_attri = "*"
@@ -88,8 +91,6 @@ def form_query(input_data, query_on):
             default_condition = base_condition.format(num=parse_input['number'], department=parse_input['department'])
             default_limit = ""
 
-
-    #TODO
     elif query_on == "teach":
         parse_input = parse_subjNnum(input_data)
         if parse_input['msg'] == "failed":
@@ -102,7 +103,7 @@ def form_query(input_data, query_on):
             default_condition = base_condition.format(num=parse_input['number'], department=parse_input['department'])
             #default_condition += " AND avg_gpa IS NOT NULL"
             extra_ending = ", ROUND(avg_gpa, 2)"
-            default_order = " ORDER BY year DESC, semester"
+            default_order = " ORDER BY prof_lname"
 
     else:
         msg = "failed, query_on not implimented"
@@ -121,6 +122,7 @@ def form_query(input_data, query_on):
 
     return {"query": query, "msg": msg, "ok": ok} 
 
+#===================================================================================
 def execute_query(query):
     result = {}
     ok = True
@@ -134,6 +136,7 @@ def execute_query(query):
         cursor.close()
     return {"raw_result": row, "query": query, "msg": "ok", "ok": True}
 
+#===================================================================================
 def parse_raw_result(raw_result, parse_on):
     select_arr = None
     result_arr = []
@@ -168,4 +171,72 @@ def parse_raw_result(raw_result, parse_on):
             result_arr.append(curr_dict)
     
     return {"parsed_result": result_arr, "msg": msg, "ok": ok}
+
+def parse_sememsterNyear(input_str):
+    ok = True
+    semester = ""
+    year = ""
+    msg = ""
+
+    first_two = input_str[:2].upper()
+    if first_two == "FA":
+        semester = "fall"
+    elif first_two == "SP":
+        semester = "spring"
+    elif first_two == "SU":
+        semester = "summer"
+    elif first_two == "WI":
+        semester = "winter"
+    else:
+        ok = False
+        msg = "Not recognized semester"
+
+    if input_str[-2:].isdigit():
+        year = input_str[-2:]
+    else:
+        ok = False
+        msg = "Not recognized year"
+
+    return {"msg": msg, "year": year, "semester": semester, "ok": ok}
+
+
+vote_attri = ['netid', 'department', 'course_num', 'semester', 'year', 'difficulty', 'recommand', 'comment', 'current_status', 'grade']
+base_edit = "{operation} {table} {condition}"
+#===================================================================================
+def form_edit(input_data, edit_on):
+    ok = True
+    msg = ""
+    default_operation = ""
+    default_table = ""
+    default_condition = ""
+
+    if edit_on == "insert_vote":
+        default_operation = "INSERT INTO"
+        default_table = "Voted"
+        default_condition = "VALUES({value})"
+        curr_condition = ""
+        has_prev = False
+        for attri in vote_attri:
+            if has_prev:
+                curr_condition += ", "
+            if input_data[attri].isdigit():
+                curr_condition += str(input_data[attri])
+            else:
+                curr_condition += "'" + str(input_data[attri]) + "'"
+            has_prev = True
+        default_condition = default_condition.format(value=curr_condition)
+        
+    elif edit_on == "update_vote":
+        default_operation = "UDPATE"
+        default_table = "Voted"
+        default_condition = "SET {attri} WHERE {condition}"
+        pass
+
+    elif edit_on == "delete_vote":
+        pass
+
+    else:
+        pass
+
+    return {"query": base_edit.format(operation=default_operation, table=default_table, condition=default_condition), "msg": msg, "ok": ok}
 

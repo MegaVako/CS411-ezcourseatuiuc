@@ -125,8 +125,8 @@
      </tbody></table>
     </div>
     <form class="vote_form w3-center" method="GET" action="/main_page/vote/">
-      <input name="dept" style="visibility:hidden; position:absolute" type="text" value="CS">
-      <input name="num" style="visibility:hidden; position:absolute" type="text" value="101">
+    <input name="dept" style="visibility:hidden; position:absolute" type="text" value="{{ base_info.department }}">
+    <input name="num" style="visibility:hidden; position:absolute" type="text" value="{{ base_info.course_num }}">
       <p class="w3-padding-16"><button class="w3-button w3-black" name="insert_opinion" formtarget="_blank" type="submit">Share my opinion</button></p>
       <p class="w3-padding-16"><button class="w3-button w3-black" name="update_opinion" formtarget="_blank" type="submit">Edit my opinion</button></p>
     </form>

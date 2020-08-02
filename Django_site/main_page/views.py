@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from django.template import loader
-from .func.mysql_func import form_query, execute_query, parse_raw_result
-from .forms import CourseForm, GenedForm 
+from .func.mysql_func import form_query, execute_query, parse_raw_result, parse_sememsterNyear, form_edit
+from .forms import CourseForm, GenedForm, VoteForm, VoteInitForm
 from django.http import HttpResponse
 
+#===================================================================================
 def calculate_avg(arr, key):
     total = 0
     count = 0
@@ -15,13 +16,16 @@ def calculate_avg(arr, key):
         return -1 
     return total / count
 
+#===================================================================================
 def main_page(request):
     return render(request, "main_page.html", {})
 
+#===================================================================================
 def search_page(request):
     return HttpResponse(form_query())
     #return render(request, "search_page.html", {})
 
+#===================================================================================
 def course_page(request):
     page = "main_page.html"
     context = {}
@@ -71,12 +75,80 @@ def course_page(request):
             context['msg'] = "invalid course_form"
     return render(request, page, context)
 
+
+#===================================================================================
 def vote_page(request):
-    return render(request, "vote_page.html", {})
+    context = {}
+    page = "vote_page.html"
+    if request.method == "GET":
+        vote_form = VoteInitForm(request.GET)
+        if vote_form.is_valid():
+            context['department'] = vote_form.cleaned_data['dept']
+            context['course_num'] = vote_form.cleaned_data['num']
+        else:
+            page = "not_found.html"
+            context['msg'] = "Invalid vote_form init"
+    else:
+        page = "not_found.html"
+        context['mgs'] = "Vote init does not handle POST"
+    return render(request, page, context)
+
+
+#===================================================================================
 def update_page(request):
+    #if request.method == "GET":
     return render(request, "udpate_page.html", {})
+
 def thanks_page(request):
-    pass
+    page = "not_found.html"
+    context = {}
+    if request.method == "POST":
+        vote_form = VoteForm(request.POST)
+        if vote_form.is_valid():
+            if "insert_opinion" in request.POST:
+                # get fake netid
+                fake_netid = execute_query("SELECT LEFT(MD5(RAND()), 8)")
+                if fake_netid["ok"]:
+                    fake_netid = fake_netid["raw_result"][0][0]
+                    vote_form.cleaned_data['netid'] = fake_netid
+                else:
+                    context['msg'] = "Generate netid failed"
+
+                # fix sememsterNyear
+                sememsterNyear = parse_sememsterNyear(vote_form.cleaned_data['sememsterNyear'])
+                if sememsterNyear['ok']:
+                    vote_form.cleaned_data['semester'] = sememsterNyear['semester']
+                    vote_form.cleaned_data['year'] = sememsterNyear['year']
+                else:
+                    context['msg'] = "Invalid semester year"
+
+                # generate edit
+                edit_query = form_edit(vote_form.cleaned_data, "insert_vote")
+                if edit_query['ok']:
+                    # execute
+                    insert_execute = execute_query(edit_query['query'])
+
+                    if insert_execute['ok']:
+                        # return thanks page
+                        page = "thanks.html"
+                        context = {"query": edit_query['query'], "netid": fake_netid}
+                    else:
+                        context['msg'] = "execute failed " + insert_execute['msg']
+                else:
+                    context['msg'] = edit_query['msg']
+
+
+            elif "update_opinion" in request.POST:
+                pass
+            elif "delete_opinion" in request.POST:
+                pass
+            else:
+                pass
+        else:
+            context['msg'] = "Invalid VoteForm"
+    return render(request, page, context)
+
+#===================================================================================
 def schedule_page(request):
     pass
 
