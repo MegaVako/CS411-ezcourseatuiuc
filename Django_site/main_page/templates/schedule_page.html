@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script>document.getElementsByTagName("html")[0].className += " js";</script>
   {% load static %}
-  <link rel="stylesheet" href="{% static "schedule/assets/css/style.css" %}">
+  <link rel="stylesheet" type="text/css" href="/main_page/{% static '/schedule/assets/css/style.css' %}">
+
   <title>Schedule Template</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -56,6 +57,8 @@
   <div class="cd-schedule cd-schedule--loading margin-top-lg margin-bottom-lg js-cd-schedule">
     <div class="cd-schedule__timeline">
       <ul>
+        <li><span>08:00</span></li>
+        <li><span>08:30</span></li>
         <li><span>09:00</span></li>
         <li><span>09:30</span></li>
         <li><span>10:00</span></li>
@@ -75,6 +78,14 @@
         <li><span>17:00</span></li>
         <li><span>17:30</span></li>
         <li><span>18:00</span></li>
+        <li><span>18:30</span></li>
+        <li><span>19:00</span></li>
+        <li><span>19:30</span></li>
+        <li><span>20:00</span></li>
+        <li><span>20:30</span></li>
+        <li><span>21:00</span></li>
+        <li><span>21:30</span></li>
+        <li><span>22:00</span></li>
       </ul>
     </div> <!-- .cd-schedule__timeline -->
 
@@ -240,8 +251,8 @@
 
     <div class="cd-schedule__cover-layer"></div>
   </div> <!-- .cd-schedule -->
-
-  <script src="assets/js/util.js"></script> <!-- util functions included in the CodyHouse framework -->
-  <script src="assets/js/main.js"></script>
+  {% load static %}
+  <script src="/main_page/{% static '/schedule/assets/js/util.js' %}"></script> <!-- util functions included in the CodyHouse framework -->
+  <script src="/main_page/{% static '/schedule/assets/js/main.js' %}"></script> <!-- util functions included in the CodyHouse framework -->
 </body>
 </html>
