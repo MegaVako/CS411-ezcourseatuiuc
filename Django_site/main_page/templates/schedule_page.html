@@ -1,59 +1,39 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <title>EasyCourse@UIUC</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script>document.getElementsByTagName("html")[0].className += " js";</script>
-  {% load static %}
-  <link rel="stylesheet" type="text/css" href="/main_page/{% static '/schedule/assets/css/style.css' %}">
 
-  <title>Schedule Template</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% load compress static %}
+  {% compress css %}
+  <link type="text/x-scss" href="https://easycourseatuiuc.web.illinois.edu/main_page{% static 'schedule/assets/css/style.scss' %}" rel="stylesheet" media="screen">
+  {% endcompress %}
+
   <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
   <!-- Navbar -->
-  <div class="w3-top">
+  <div class="position-relative">
+  <div class="w3-navibar">
   <div class="w3-bar w3-red w3-card w3-left-align w3-large">
   <a class="w3-bar-item w3-button w3-hide-medium w3-hide-large w3-right w3-padding-large w3-hover-white w3-large w3-red" href="javascript:void(0);" onclick="myFunction()" title="Toggle Navigation Menu"><i class="fa fa-bars"></i></a>
-  <a href="http://ezcourseatuiuc.web.illinois.edu/" class="w3-bar-item w3-button w3-padding-large w3-hover-white">Home</a>
+  <a href="http://easycourseatuiuc.web.illinois.edu/" class="w3-bar-item w3-button w3-padding-large w3-hover-white">Home</a>
   <a href="mailto:yans3@illinois.edu" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Contact Us</a>
   <a href="http://illinois.edu/"><img src="https://campusrec.illinois.edu/wp-content/uploads/2017/08/block-I-icon-512x512-300x300.png" style="width:42px;height:50px;"></a>
+  </div>
   </div>
 
   <!-- Navbar on small screens -->
   <div id="navDemo" class="w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium w3-large">
   <a href="mailto:yans3@illinois.edu" class="w3-bar-item w3-button w3-padding-large">Contact Us</a>
+ </div>
 
- <!--SIDE BAR-->
-  </div>
-
-  <nav class="w3-sidebar w3-bar-block w3-collapse w3-large w3-theme-l6 w3-animate-left" id="mySidebar">
-    <a href="javascript:void(0)" onclick="w3_close()" class="w3-right w3-xlarge w3-padding-large w3-hover-black w3-hide-large" title="Close Menu">
-      <i class="fa fa-remove"></i>
-    </a>
-    <p class="w3-bar-item w3-padding-large w3-black"><b>Filter</b></p>
-      <a class="w3-bar-item w3-button w3-padding-large w3-orange">
-    <p><input class="w3-radio" type="checkbox" href="#" checked=""><label>100 -- 200</label></p>
-    <p><input class="w3-radio" type="checkbox" href="#" checked=""><label>200 -- 300</label></p>
-    <p><input class="w3-radio" type="checkbox" href="#" checked=""><label>300 -- 400</label></p>
-    <p><input class="w3-radio" type="checkbox" href="#" checked=""><label>400+</label></p>
-    <p><input class="w3-radio" type="checkbox" href="#" checked=""><label>Term A</label></p>
-    <p><input class="w3-radio" type="checkbox" href="#" checked=""><label>Term B</label></p>
-
-    <a class="w3-bar-item w3-button w3-padding-large w3-red">Apply Change</a>
-    <a class="w3-bar-item w3-button w3-padding-large w3-blue">Choose More Courses</a>
-  </nav>
-</header>
-<!--SIDE BAR END-->
-
-
-
-
-<main>
+<div class="w3-container">
+  <p name="DEBUG">{{ cart_info }}</p>
   <div class="cd-schedule cd-schedule--loading margin-top-lg margin-bottom-lg js-cd-schedule">
     <div class="cd-schedule__timeline">
       <ul>
@@ -93,25 +73,14 @@
       <ul>
         <li class="cd-schedule__group">
           <div class="cd-schedule__top-info"><span>Monday</span></div>
-
           <ul>
+            {% for c in cart_info.Monday %}
             <li class="cd-schedule__event">
-              <a data-start="09:30" data-end="10:30" data-content="event-abs-circuit" data-event="event-1" href="#0">
-                <em class="cd-schedule__name">Abs Circuit</em>
+            <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
+                <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
               </a>
             </li>
-
-            <li class="cd-schedule__event">
-              <a data-start="11:00" data-end="12:30" data-content="event-rowing-workout" data-event="event-2" href="#0">
-                <em class="cd-schedule__name">Rowing Workout</em>
-              </a>
-            </li>
-
-            <li class="cd-schedule__event">
-              <a data-start="14:00" data-end="15:15"  data-content="event-yoga-1" data-event="event-3" href="#0">
-                <em class="cd-schedule__name">Yoga Level 1</em>
-              </a>
-            </li>
+            {% endfor %}
           </ul>
         </li>
 
@@ -119,29 +88,14 @@
           <div class="cd-schedule__top-info"><span>Tuesday</span></div>
 
           <ul>
-            <li class="cd-schedule__event">
-              <a data-start="10:00" data-end="11:00"  data-content="event-rowing-workout" data-event="event-2" href="#0">
-                <em class="cd-schedule__name">Rowing Workout</em>
-              </a>
-            </li>
 
+            {% for c in cart_info.Tuesday %}
             <li class="cd-schedule__event">
-              <a data-start="11:30" data-end="13:00"  data-content="event-restorative-yoga" data-event="event-4" href="#0">
-                <em class="cd-schedule__name">Restorative Yoga</em>
+            <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
+                <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
               </a>
             </li>
-
-            <li class="cd-schedule__event">
-              <a data-start="13:30" data-end="15:00" data-content="event-abs-circuit" data-event="event-1" href="#0">
-                <em class="cd-schedule__name">Abs Circuit</em>
-              </a>
-            </li>
-
-            <li class="cd-schedule__event">
-              <a data-start="15:45" data-end="16:45"  data-content="event-yoga-1" data-event="event-3" href="#0">
-                <em class="cd-schedule__name">Yoga Level 1</em>
-              </a>
-            </li>
+            {% endfor %}
           </ul>
         </li>
 
@@ -149,29 +103,13 @@
           <div class="cd-schedule__top-info"><span>Wednesday</span></div>
 
           <ul>
+            {% for c in cart_info.Wednesday %}
             <li class="cd-schedule__event">
-              <a data-start="09:00" data-end="10:15" data-content="event-restorative-yoga" data-event="event-4" href="#0">
-                <em class="cd-schedule__name">Restorative Yoga</em>
+            <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
+                <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
               </a>
             </li>
-
-            <li class="cd-schedule__event">
-              <a data-start="10:45" data-end="11:45" data-content="event-yoga-1" data-event="event-3" href="#0">
-                <em class="cd-schedule__name">Yoga Level 1</em>
-              </a>
-            </li>
-
-            <li class="cd-schedule__event">
-              <a data-start="12:00" data-end="13:45"  data-content="event-rowing-workout" data-event="event-2" href="#0">
-                <em class="cd-schedule__name">Rowing Workout</em>
-              </a>
-            </li>
-
-            <li class="cd-schedule__event">
-              <a data-start="13:45" data-end="15:00" data-content="event-yoga-1" data-event="event-3" href="#0">
-                <em class="cd-schedule__name">Yoga Level 1</em>
-              </a>
-            </li>
+            {% endfor %}
           </ul>
         </li>
 
@@ -179,29 +117,13 @@
           <div class="cd-schedule__top-info"><span>Thursday</span></div>
 
           <ul>
+            {% for c in cart_info.Thursday %}
             <li class="cd-schedule__event">
-              <a data-start="09:30" data-end="10:30" data-content="event-abs-circuit" data-event="event-1" href="#0">
-                <em class="cd-schedule__name">Abs Circuit</em>
+            <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
+                <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
               </a>
             </li>
-
-            <li class="cd-schedule__event">
-              <a data-start="12:00" data-end="13:45" data-content="event-restorative-yoga" data-event="event-4" href="#0">
-                <em class="cd-schedule__name">Restorative Yoga</em>
-              </a>
-            </li>
-
-            <li class="cd-schedule__event">
-              <a data-start="15:30" data-end="16:30" data-content="event-abs-circuit" data-event="event-1" href="#0">
-                <em class="cd-schedule__name">Abs Circuit</em>
-              </a>
-            </li>
-
-            <li class="cd-schedule__event">
-              <a data-start="17:00" data-end="18:30"  data-content="event-rowing-workout" data-event="event-2" href="#0">
-                <em class="cd-schedule__name">Rowing Workout</em>
-              </a>
-            </li>
+            {% endfor %}
           </ul>
         </li>
 
@@ -209,23 +131,13 @@
           <div class="cd-schedule__top-info"><span>Friday</span></div>
 
           <ul>
+            {% for c in cart_info.Friday %}
             <li class="cd-schedule__event">
-              <a data-start="10:00" data-end="11:00"  data-content="event-rowing-workout" data-event="event-2" href="#0">
-                <em class="cd-schedule__name">Rowing Workout</em>
+            <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
+                <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
               </a>
             </li>
-
-            <li class="cd-schedule__event">
-              <a data-start="12:30" data-end="14:00" data-content="event-abs-circuit" data-event="event-1" href="#0">
-                <em class="cd-schedule__name">Abs Circuit</em>
-              </a>
-            </li>
-
-            <li class="cd-schedule__event">
-              <a data-start="15:45" data-end="16:45"  data-content="event-yoga-1" data-event="event-3" href="#0">
-                <em class="cd-schedule__name">Yoga Level 1</em>
-              </a>
-            </li>
+            {% endfor %}
           </ul>
         </li>
       </ul>
@@ -251,6 +163,7 @@
 
     <div class="cd-schedule__cover-layer"></div>
   </div> <!-- .cd-schedule -->
+</div>
   {% load static %}
   <script src="/main_page/{% static '/schedule/assets/js/util.js' %}"></script> <!-- util functions included in the CodyHouse framework -->
   <script src="/main_page/{% static '/schedule/assets/js/main.js' %}"></script> <!-- util functions included in the CodyHouse framework -->

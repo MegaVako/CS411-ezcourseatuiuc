@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.template import loader
-from .func.mysql_func import form_query, execute_query, parse_raw_result, parse_semesterNyear, form_edit, parse_subjNnum
+from .func.mysql_func import form_query, execute_query, parse_raw_result, parse_semesterNyear, form_edit, parse_subjNnum, parse_cookieCart, convert_schedule_to_calendar
 from .forms import CourseForm, GenedForm, VoteForm, VoteInitForm, UpdateForm
 from django.http import HttpResponse
 
@@ -48,23 +48,27 @@ def course_page(request):
                     vote_parsed_result = parse_raw_result(vote_query_result['raw_result'], "vote")
 
                     if course_parsed_result["ok"] and teach_parsed_result["ok"] and vote_query_result["ok"]:
-                        page = "course_page.html"
-                        
-                        #assume this pass because it passed course_query
-                        subjNnum = parse_subjNnum(input_str)
-                        #TODO set correct prof for next semester
-                        context['base_info'] = {"department": subjNnum['department'], "course_num": subjNnum['number']}
-                        context['course_info'] = course_parsed_result['parsed_result']
-                        context['teach_info'] = teach_parsed_result['parsed_result']
-                        context['vote_info'] = vote_parsed_result['parsed_result']
-                        
-                        diff_avg = round(calculate_avg(vote_parsed_result['parsed_result'], "difficulty") * 10, 2)
-                        recom_avg = round(calculate_avg(vote_parsed_result['parsed_result'], "recommand") * 10, 2)
-                        if diff_avg == -10:
-                            diff_avg = 50
-                            recom_avg = 50
-                        gpa_avg = round(calculate_avg(teach_parsed_result['parsed_result'], "avg_gpa") / 0.04, 2)
-                        context['avg_info'] = {"diff_avg": diff_avg, "recom_avg": recom_avg, "gpa_avg": gpa_avg, "gpa_info_gpa": round(gpa_avg * 0.04, 2)}
+                        if len(course_parsed_result['parsed_result']) == 0:
+                            page = "not_found.html"
+                            context['msg'] = "valid search on course, but no course found"
+                        else:
+                            page = "course_page.html"
+                            
+                            #assume this pass because it passed course_query
+                            subjNnum = parse_subjNnum(input_str)
+                            #TODO set correct prof for next semester
+                            context['base_info'] = {"department": subjNnum['department'], "course_num": subjNnum['number'], "next_prof": teach_parsed_result['next_prof']}
+                            context['course_info'] = course_parsed_result['parsed_result']
+                            context['teach_info'] = teach_parsed_result['parsed_result']
+                            context['vote_info'] = vote_parsed_result['parsed_result']
+                            
+                            diff_avg = round(calculate_avg(vote_parsed_result['parsed_result'], "difficulty") * 10, 2)
+                            recom_avg = round(calculate_avg(vote_parsed_result['parsed_result'], "recommand") * 10, 2)
+                            if diff_avg == -10:
+                                diff_avg = 50
+                                recom_avg = 50
+                            gpa_avg = round(calculate_avg(teach_parsed_result['parsed_result'], "avg_gpa") / 0.04, 2)
+                            context['avg_info'] = {"diff_avg": diff_avg, "recom_avg": recom_avg, "gpa_avg": gpa_avg, "gpa_info_gpa": round(gpa_avg * 0.04, 2)}
                     else:
                         page = "not_found.html"
                         context['msg'] = course_parsed_result['msg'] + " " + teach_parsed_result['msg']
@@ -207,6 +211,33 @@ def cart_page(request):
 def schedule_page(request):
     page = ""
     context = {}
+    ok = True
     if request.method == "GET":
-        page = "schedule_page.html"
+        cart_arr = request.COOKIES.get("course")
+        parse_cart = parse_cookieCart(cart_arr)
+        if parse_cart['ok']:
+            info_arr = {}
+            for c in parse_cart['result']:
+                curr_query = form_query(c, "schedule")
+                if curr_query['ok']:
+                    curr_result = execute_query(curr_query['query'])    
+                    if curr_result['ok']:
+                        info_arr[c[0] + c[1]] = parse_raw_result(curr_result['raw_result'], "schedule") 
+                    else:
+                        page = "not_found.html"
+                        context['msg'] = curr_result['msg'] + curr_query['query']
+                        ok = False
+                        break
+                else:
+                    page = "not_found.html"
+                    context['msg'] = "Unable to format query on " + c[0] + c[1]
+                    ok = False
+                    break;
+            if ok:
+                page = "schedule_page.html"
+                context['cart_info'] = convert_schedule_to_calendar(info_arr)
+        else:
+            page = "not_found.html"
+            ok = False
+            context['msg'] = parse_cart['msg']
     return render(request, page, context) 

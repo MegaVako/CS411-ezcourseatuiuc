@@ -1,4 +1,4 @@
-@import '../../../../../codyhouse-framework/main/assets/css/style.scss'; // ⚠️ make sure to import the CodyHouse framework
+@import '../../../../../../gitdoc/codyhouse-framework/main/assets/css/style.scss'; // ⚠️ make sure to import the CodyHouse framework
 @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600'); // custom font
 
 // --------------------------------
@@ -12,7 +12,15 @@
   @include defineColorHSL(--cd-color-event-1, 199, 25%, 46%);   // Smalt Blue
   @include defineColorHSL(--cd-color-event-2, 271, 23%, 26%);   // Martinique
   @include defineColorHSL(--cd-color-event-3, 162, 14%, 68%);   // Edward
-  @include defineColorHSL(--cd-color-event-4, 31, 89%, 68%);    // Rajah
+  @include defineColorHSL(--cd-color-event-4, 118, 89%, 40%);   // deep green
+  @include defineColorHSL(--cd-color-event-5, 188, 89%, 68%);    // light blue
+  @include defineColorHSL(--cd-color-event-6, 210, 89%, 68%);   
+  @include defineColorHSL(--cd-color-event-7, 230, 89%, 68%);  
+  @include defineColorHSL(--cd-color-event-8, 260, 89%, 68%); 
+  @include defineColorHSL(--cd-color-event-9, 280, 89%, 68%);
+  @include defineColorHSL(--cd-color-event-10, 300, 89%, 68%); 
+  @include defineColorHSL(--cd-color-event-11, 100, 89%, 68%); 
+  @include defineColorHSL(--cd-color-event-12, 120, 89%, 68%); 
   @include defineColorHSL(--cd-color-text, 0, 0%, 13%);         // Black
   @include defineColorHSL(--cd-color-border, 0, 0%, 92%);       // Grey
 
@@ -20,8 +28,8 @@
   --font-primary: 'Source Sans Pro', sans-serif;
 
   //schedule template
-  --schedule-rows-number: 19;
-  --schedule-rows-height: 50px;
+  --schedule-rows-number: 29; //19
+  --schedule-rows-height: 50px; // 50
 }
 
 body {
@@ -29,7 +37,7 @@ body {
 }
 
 a {
-	color: var(--cd-color-event-3);
+	color: var(--cd-color-event-11);
 }
 
 .cd-schedule {
@@ -311,9 +319,37 @@ a {
 	background: var(--cd-color-event-3);
 }
 
-.cd-schedule__event [data-event="event-4"],
-.cd-schedule-modal[data-event="event-4"] .cd-schedule-modal__header-bg {
-	background: var(--cd-color-event-4);
+.cd-schedule__event [data-event="event-5"],
+.cd-schedule-modal[data-event="event-5"] .cd-schedule-modal__header-bg {
+	background: var(--cd-color-event-5);
+}
+.cd-schedule__event [data-event="event-6"],
+.cd-schedule-modal[data-event="event-6"] .cd-schedule-modal__header-bg {
+	background: var(--cd-color-event-6);
+}
+.cd-schedule__event [data-event="event-7"],
+.cd-schedule-modal[data-event="event-7"] .cd-schedule-modal__header-bg {
+	background: var(--cd-color-event-7);
+}
+.cd-schedule__event [data-event="event-8"],
+.cd-schedule-modal[data-event="event-8"] .cd-schedule-modal__header-bg {
+	background: var(--cd-color-event-8);
+}
+.cd-schedule__event [data-event="event-9"],
+.cd-schedule-modal[data-event="event-9"] .cd-schedule-modal__header-bg {
+	background: var(--cd-color-event-9);
+}
+.cd-schedule__event [data-event="event-10"],
+.cd-schedule-modal[data-event="event-10"] .cd-schedule-modal__header-bg {
+	background: var(--cd-color-event-10);
+}
+.cd-schedule__event [data-event="event-11"],
+.cd-schedule-modal[data-event="event-11"] .cd-schedule-modal__header-bg {
+	background: var(--cd-color-event-11);
+}
+.cd-schedule__event [data-event="event-12"],
+.cd-schedule-modal[data-event="event-12"] .cd-schedule-modal__header-bg {
+	background: var(--cd-color-event-12);
 }
 
 .cd-schedule-modal {
