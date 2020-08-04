@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<title>EasyCourse@UIUC</title>
+<title>EasyCourse@UIUC search</title>
 <!-- from https://www.w3schools.com/w3css/tryit.asp?filename=tryw3css_templates_webpage&stacked=h -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,6 +18,9 @@ html,body{height: 100%}
   bottom: 0;
   height: inherit;
 }
+th {
+  font-size: 20px;
+}
 </style>
 <body>
 
@@ -25,7 +28,7 @@ html,body{height: 100%}
 <div class="w3-top">
   <div class="w3-bar w3-theme w3-top w3-left-align w3-large">
     <a class="w3-bar-item w3-button w3-right w3-hide-large w3-hover-white w3-large w3-theme-l1" href="javascript:void(0)" onclick="w3_open()"><i class="fa fa-bars"></i></a>
-    <a href="http://easycourseatuiuc.web.illinois.edu/" class="w3-bar-item w3-button w3-theme-l1">EzCourse@UIUC</a>
+    <a href="http://easycourseatuiuc.web.illinois.edu/" class="w3-bar-item w3-button w3-theme-l1">EasyCourse@UIUC</a>
     <a href="#" class="w3-bar-item w3-red w3-button w3-hide-small w3-hover-white">Social & Behavioral Sci</a>
     <a href="#" class="w3-bar-item w3-indigo w3-button w3-hide-small w3-hover-white">Quantitative Reasoning</a>
     <a href="#" class="w3-bar-item w3-teal w3-button w3-hide-small w3-hover-white">Natural Sci & Tech</a>
@@ -63,15 +66,36 @@ html,body{height: 100%}
 
   <div class="w3-row w3-padding-64">
     <div class="w3-row w3-container">
-      <h1 class="w3-text-teal">Heading 0</h1>
-      <p>OK 0</p>
+      <h1 class="w3-text-teal">Search on:</h1>
+      <p>{{ search_input }}</p>
     </div>
   </div>
 
   <div class="w3-row">
     <div class="w3-row w3-container">
-      <h1 class="w3-text-teal">Heading 1</h1>
-      <p>OK 1</p>
+      <h1 class="w3-text-teal">Result</h1>
+      <table class="w3-table w3-striped w3-bordered w3-hoverable">
+        <tr>
+          <th>Course</th>
+          <th>Tittle</th>
+          <th>Gened</th>
+          <th>Average GPA</th>
+        </tr>
+        {% if search_result|length > 0 %}
+          {% for info in search_result %}
+          <tr>
+            <td>
+              <form name="course_form" action="/main_page/course/">
+                <input class="w3-border-0" type="submit" name="search_input" value="{{ info.department }} {{ info.course_num }}" style="cursor: pointer"></input>
+              </form>
+            </td>
+            <td>{{ info.tittle  }}</td>
+            <td>{{ info.requirement_fulfill }}</td>
+            <td>{{ info.avg_gpa  }}</td>
+          </tr>
+          {% endfor %}
+        {% endif %}
+      </table>
     </div>
   </div>
 
@@ -101,7 +125,7 @@ html,body{height: 100%}
 
     <div class="w3-container w3-theme-l1">
       <!-- very wrong TODO fix -->
-      <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a> <a class="w3-third" href="yans3@illinois.edu" target="_blank">Contact us</a></p>
+      <p>Powered by <a href="https://www.w3schools.com/w3css/default.asp" target="_blank">w3.css</a> <a class="w3-third" href="mailto:yans3@illinois.edu" target="_blank">Contact us</a></p>
     </div>
   </footer>
 

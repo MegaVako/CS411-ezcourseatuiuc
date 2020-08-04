@@ -24,7 +24,7 @@ def parse_subjNnum(input_str):
         msg = "failed"
     return {"department": subject, "number": number, "msg": msg}
 
-course_select = ["department", "course_num", "semester", "year", "title", "requirement_fulfill", "course_description"]
+course_select = ["department", "course_num", "semester", "year", "tittle", "requirement_fulfill", "course_description"]
 gened_select = ["department", "course_num", "tittle", "requirement_fulfill", "avg_gpa"]
 teach_select = ["prof_fname", "prof_lname", "semester", "year", "lecture_type", "avg_gpa"]
 vote_select = ["difficulty", "recommand", "comment", "grade", "semester", "year"]
@@ -65,7 +65,7 @@ def form_query(input_data, query_on):
     elif query_on == "gened":
         '''
         SELECT c.department, c.course_num, c.tittle, c.requirement_fulfill, ROUND(AVG(t.avg_gpa), 2)
-        FROM Courses c LEFT OUTER JOIN Teach_test t ON (c.course_num = t.course_num AND c.department = t.department)
+        FROM Courses c LEFT OUTER JOIN Teach t ON (c.course_num = t.course_num AND c.department = t.department)
         WHERE c.year = 2019 AND
             c.semester = 'fall' AND
             c.requirement_fulfill LIKE "%CS%" AND
@@ -77,12 +77,29 @@ def form_query(input_data, query_on):
         select_arr = gened_select[:-1] # compenstae for the extra_ending
         extra_buffer = 'c.'
         extra_ending = ", ROUND(AVG(t.avg_gpa), 2)"
-        default_table = "Courses c LEFT OUTER JOIN Teach_test t ON (c.course_num = t.course_num AND c.department = t.department)"
-        default_condition = "c.year=2020 AND c.semester=fall"
-        #TODO finish condition
-        #TODO add group/order
+        default_table = "Courses c LEFT OUTER JOIN Teach t ON (c.course_num = t.course_num AND c.department = t.department)"
 
-    #TODO
+        has_prev = False
+        for k, v in input_data.items():
+            if v:
+                if has_prev:
+                    default_condition += "AND "
+                else:
+                    default_condition = ""
+
+                default_condition += ("c.requirement_fulfill LIKE '%" + k + "%' ")
+                has_prev = True
+        
+        if default_condition == "1":
+            ok = False
+            msg = "No gened selected"
+        else:
+            #default_condition += "AND c.year=2020 AND c.semester='fall' AND t.avg_gpa IS NOT NULL GROUP BY c.course_num, c.department"
+            default_condition += "AND c.year=2020 AND c.semester='fall' GROUP BY c.course_num, c.department"
+            default_order = "ORDER BY AVG(t.avg_gpa) DESC"
+            default_limit = "LIMIT 30"
+    
+    # expect valid course form
     elif query_on == "vote":
         parse_input = parse_subjNnum(input_data)
         if parse_input['msg'] == "failed":
@@ -117,7 +134,7 @@ def form_query(input_data, query_on):
         msg = "failed, query_on not implimented"
         ok = False
 
-    if "failed" not in msg:
+    if ok:
         default_attri = ""
         has_prev = False
         for attri in select_arr: 
@@ -208,18 +225,22 @@ def parse_raw_result(raw_result, parse_on):
                     curr_dict['time_end'] = -1 #TODO handle in template syntax
                 else:
                     # time_start
+                    orig_time = curr_dict['time_start']
                     curr_time = curr_dict['time_start']
                     if curr_time[-2:] == "PM" and curr_time[:2] != '12':                         
-                        curr_time = (str(int(curr_time[:2]) + 12) + curr_time[2:-3])
+                        curr_dict['time_start'] = (str(int(curr_time[:2]) + 12) + curr_time[2:-3])
                     else:
                         curr_dict['time_start'] = curr_time[:-3] # 11:00 AM
 
                     # time_end
                     curr_time = curr_dict['time_end']
                     if curr_time[-2:] == "PM" and curr_time[:2] != '12':                         
-                        curr_time = (str(int(curr_time[:2]) + 12) + curr_time[2:-3])
+                        curr_dict['time_end'] = (str(int(curr_time[:2]) + 12) + curr_time[2:-3])
                     else:
                         curr_dict['time_end'] = curr_time[:-3] # 11:00 AM
+
+                    # num of 5mins block
+                    curr_dict['time_diff'] = (int(curr_dict['time_end'][:2]) - int(curr_dict['time_start'][:2])) * 12 + (int(curr_dict['time_end'][-2:]) - int(curr_dict['time_start'][-2:])) / 5 
 
             result_arr.append(curr_dict)
     

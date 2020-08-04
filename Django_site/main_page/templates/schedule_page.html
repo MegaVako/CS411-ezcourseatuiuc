@@ -5,6 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script>document.getElementsByTagName("html")[0].className += " js";</script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+
 
   {% load compress static %}
   {% compress css %}
@@ -24,6 +26,7 @@
   <a href="http://easycourseatuiuc.web.illinois.edu/" class="w3-bar-item w3-button w3-padding-large w3-hover-white">Home</a>
   <a href="mailto:yans3@illinois.edu" class="w3-bar-item w3-button w3-hide-small w3-padding-large w3-hover-white">Contact Us</a>
   <a href="http://illinois.edu/"><img src="https://campusrec.illinois.edu/wp-content/uploads/2017/08/block-I-icon-512x512-300x300.png" style="width:42px;height:50px;"></a>
+    <button class="w3-button w3-teal w3-xlarge w3-right" onclick="openRightMenu()" style="font-size:24px">Edit Cart<i class="fa fa-shopping-cart"></i></button>
   </div>
   </div>
 
@@ -31,9 +34,19 @@
   <div id="navDemo" class="w3-bar-block w3-white w3-hide w3-hide-large w3-hide-medium w3-large">
   <a href="mailto:yans3@illinois.edu" class="w3-bar-item w3-button w3-padding-large">Contact Us</a>
  </div>
-
+ <body>
+    <div  class="w3-sidebar w3-bar-block w3-card w3-animate-left w3-blue w3-large" style="display:none;left:0;" id="leftMenu">
+      <button onclick="closeRightMenu()" class="w3-bar-item w3-button w3-large">Close &times;</button>
+      <form action="https://easycourseatuiuc.web.illinois.edu/main_page/" >
+        <p class="w3-padding-16"><input formtarget="_blank" class="w3-button w3-black" type="submit" value="search more"><i class="fa fa-search"></i></input></p>
+      </form>
+      <div class="w3-container"id="courseCheckBoxContainer">
+      <!-- Insert cart in here DEBUG -->
+      </div>
+      <!-- <p id="clearBtn" class="w3-padding-16"><button class="w3-button w3-black" onclick="" type="button">Remove Item</button></p> NOT USED-->
+    </div>
 <div class="w3-container">
-  <p name="DEBUG">{{ cart_info }}</p>
+  <p name="DEBUG">{{ context.cart_info }}</p>
   <div class="cd-schedule cd-schedule--loading margin-top-lg margin-bottom-lg js-cd-schedule">
     <div class="cd-schedule__timeline">
       <ul>
@@ -74,7 +87,7 @@
         <li class="cd-schedule__group">
           <div class="cd-schedule__top-info"><span>Monday</span></div>
           <ul>
-            {% for c in cart_info.Monday %}
+            {% for c in context.cart_info.Monday %}
             <li class="cd-schedule__event">
             <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
                 <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
@@ -103,7 +116,7 @@
           <div class="cd-schedule__top-info"><span>Wednesday</span></div>
 
           <ul>
-            {% for c in cart_info.Wednesday %}
+            {% for c in context.cart_info.Wednesday %}
             <li class="cd-schedule__event">
             <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
                 <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
@@ -117,7 +130,7 @@
           <div class="cd-schedule__top-info"><span>Thursday</span></div>
 
           <ul>
-            {% for c in cart_info.Thursday %}
+            {% for c in context.cart_info.Thursday %}
             <li class="cd-schedule__event">
             <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
                 <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
@@ -131,7 +144,7 @@
           <div class="cd-schedule__top-info"><span>Friday</span></div>
 
           <ul>
-            {% for c in cart_info.Friday %}
+            {% for c in context.cart_info.Friday %}
             <li class="cd-schedule__event">
             <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
                 <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
@@ -164,6 +177,135 @@
     <div class="cd-schedule__cover-layer"></div>
   </div> <!-- .cd-schedule -->
 </div>
+  <script>
+    function dropDownFunc(clicked_id) {
+        var x = document.getElementById(clicked_id);
+        if (x.className.indexOf("w3-show") == -1) {
+          x.className += " w3-show";
+        } else { 
+          x.className = x.className.replace(" w3-show", "");
+        }
+        console.log("clicked " + clicked_id);
+    }
+    function openRightMenu() {
+      document.getElementById("leftMenu").style.display = "block";
+    }
+
+    function closeRightMenu() {
+      document.getElementById("leftMenu").style.display = "none";
+    }
+    // =========================================================================
+    // 168 = 14hr * 12; 12 5-min-block per hr
+    var time_start = createArray(5, 168);
+    var time_end = createArray(5, 168);
+    var day_arr = ['Monday',];
+    var schedule_data = '{{ context|safe }}';
+    var course_group = '{{ course_group|safe }}';
+    function getScheduleData() {
+      schedule_data = JSON.parse(schedule_data)
+      course_group = JSON.parse(course_group)
+      if (schedule_data.ok) {
+        console.log(schedule_data); //DEBUG
+        console.log(course_group); //DEBUG
+        alert("load schedule data succeed \n"); 
+        initScheduleBar();
+      } else {
+        alert("load schedule data failed \n" + schedule_data.msg);
+      }
+    }
+    function createArray(length) {
+      var arr = new Array(length || 0),
+      i = length;
+
+      if (arguments.length > 1) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        while(i--) arr[length-1 - i] = createArray.apply(this, args);
+      }
+      return arr;
+    }
+    // function from https://stackoverflow.com/questions/12274748/setting-multiple-attributes-for-an-element-at-once-with-javascript
+    Element.prototype.setAttributes = function (attrs) {
+      for (var idx in attrs) {
+        if ((idx === 'styles' || idx === 'style') && typeof attrs[idx] === 'object') {
+          for (var prop in attrs[idx]){this.style[prop] = attrs[idx][prop];}
+        } else if (idx === 'html') {
+          this.innerHTML = attrs[idx];
+        } else {
+          this.setAttribute(idx, attrs[idx]);
+        }
+      }
+    };
+    function onClickHandler(element) {
+      console.log("clicked " + element.id);
+    };
+    function initScheduleBar() {
+      for (var key in course_group) {
+        if (course_group.hasOwnProperty(key)) {
+          console.log(key) // department + course_num
+          var each_course = course_group[key].parsed_result;
+          var button_base = document.createElement("div");
+          var button_self = document.createElement("button");
+          var section_drop = document.createElement("div");
+
+          button_base.setAttribute("class", "w3-dropdown-click")
+          button_self.setAttribute("onClick", "dropDownFunc('" + key + "')")
+          button_self.setAttribute("class", "w3-button w3-black")
+          button_self.textContent = key
+          button_base.appendChild(button_self);
+          section_drop.setAttributes({
+            "class": "w3-dropdown-content w3-bar-block w3-border",
+            "id": key
+          })
+
+          for (var section in each_course) {
+            var section_base = document.createElement("p");
+            var section_checkBox = document.createElement("input");
+            section_checkBox.setAttributes({
+              "class": "w3-check",
+              "type": "checkbox",
+              "onclick": "onClickHandler(this)",
+              "id": (each_course[section]["crn"])
+            })
+            var section_info = document.createElement("label")
+            section_info.setAttribute("class", "w3-small")
+            section_info.textContent = (each_course[section]["lecture_type"] + " " + each_course[section]["time_start"] + "-" + each_course[section]["time_end"] + " " + each_course[section]["day_of_week"]);
+            section_info.setAttribute("for", each_course[section]["crn"] + "_checkbox")
+            section_info.appendChild(section_checkBox); // <-- input under label
+            section_base.appendChild(section_info); // <-- label under p
+            section_drop.append(section_base); // p under div drop
+          }
+          button_base.appendChild(section_drop);
+          document.getElementById('courseCheckBoxContainer').appendChild(button_base);
+        }
+      }
+    }
+    function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for(var i = 0; i <ca.length; i++) {
+          var c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
+        }
+        return "";
+    }
+    function setCookie(cname, cvalue, exdays) {
+      var d = new Date();
+      d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+      var expires = "expires="+d.toUTCString();
+      document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+      if (cvalue.localeCompare("") == 0) {
+        alert("Your cart has been cleared")
+        document.getElementById("DEBUG").innerHTML = document.cookie + " " + "curr";
+      }
+    }
+    window.onload = getScheduleData; // !!! CAREFUL, call getScheduleData as soon as the site load
+  </script>
   {% load static %}
   <script src="/main_page/{% static '/schedule/assets/js/util.js' %}"></script> <!-- util functions included in the CodyHouse framework -->
   <script src="/main_page/{% static '/schedule/assets/js/main.js' %}"></script> <!-- util functions included in the CodyHouse framework -->

@@ -3,6 +3,7 @@ from django.template import loader
 from .func.mysql_func import form_query, execute_query, parse_raw_result, parse_semesterNyear, form_edit, parse_subjNnum, parse_cookieCart, convert_schedule_to_calendar
 from .forms import CourseForm, GenedForm, VoteForm, VoteInitForm, UpdateForm
 from django.http import HttpResponse
+import jsonpickle
 
 #===================================================================================
 def calculate_avg(arr, key):
@@ -22,8 +23,31 @@ def main_page(request):
 
 #===================================================================================
 def search_page(request):
-    return HttpResponse(form_query())
-    #return render(request, "search_page.html", {})
+    if request.method == "GET":
+        search_query = None
+        page = "not_found.html"
+        context = {}
+        gened_form = GenedForm(request.GET)
+        if gened_form.is_valid():
+            gened_query = form_query(gened_form.cleaned_data, "gened")
+            if gened_query['ok']:
+                gened_query_result = execute_query(gened_query['query'])
+                if gened_query_result['ok']:
+                    gened_parsed_result = parse_raw_result(gened_query_result['raw_result'], "gened")
+                    if gened_parsed_result['ok']:
+                        page = "search_page.html"
+                        context['search_input'] = gened_query['query']
+                        context['search_result'] = gened_parsed_result['parsed_result']
+                    else:
+                        context['msg'] = gened_parsed_result['msg']
+                else:
+                    context['msg'] = gened_query_result['msg']
+            else:
+                context['msg'] = gened_query['msg']
+        else:
+            context['msg'] = "Invalid gened form"
+
+    return render(request, page, context)
 
 #===================================================================================
 def course_page(request):
@@ -123,6 +147,7 @@ def update_page(request):
 def thanks_page(request):
     page = "not_found.html"
     context = {}
+    ok = True
     if request.method == "POST":
         curr_form = None
         edit_type = ""
@@ -142,9 +167,11 @@ def thanks_page(request):
                     edit_type = "insert_vote"
                     msg = "Insert success"
                 else:
+                    ok = False
                     context['msg'] = "Generate netid failed"
 
             else:
+                ok = False
                 context['msg'] = "Invalid VoteForm"
 
         elif "update_opinion" in request.POST:
@@ -169,6 +196,7 @@ def thanks_page(request):
                 curr_form.cleaned_data['semester'] = semesterNyear['semester']
                 curr_form.cleaned_data['year'] = semesterNyear['year']
             else:
+                ok = False
                 context['msg'] = "Invalid semester year"
 
         if validate_exist and context['msg'] == None:
@@ -182,22 +210,23 @@ def thanks_page(request):
                     page = "not_found.html"
                     context['msg'] = "your 8-character string has no match for this course's opinion" 
             else:
-                page = "not_found.html"
+                ok = False
                 context['msg'] = validate_result['msg']
 
         # generate edit
-        edit_query = form_edit(curr_form.cleaned_data, edit_type)
-        if edit_query['ok']:
-            # execute
-            curr_execute = execute_query(edit_query['query'])
-            if curr_execute['ok']:
-                # return thanks page
-                page = "thanks.html"
-                context = {"query": edit_query['query'], "netid": curr_form.cleaned_data['netid'], "msg": msg}
+        if ok:
+            edit_query = form_edit(curr_form.cleaned_data, edit_type)
+            if edit_query['ok']:
+                # execute
+                curr_execute = execute_query(edit_query['query'])
+                if curr_execute['ok']:
+                    # return thanks page
+                    page = "thanks.html"
+                    context = {"query": edit_query['query'], "netid": curr_form.cleaned_data['netid'], "msg": msg}
+                else:
+                    context['msg'] = "execute failed " + curr_execute['msg']
             else:
-                context['msg'] = "execute failed " + curr_execute['msg']
-        else:
-            context['msg'] = edit_query['msg']
+                context['msg'] = edit_query['msg']
 
     return render(request, page, context)
 
@@ -211,12 +240,12 @@ def cart_page(request):
 def schedule_page(request):
     page = ""
     context = {}
+    info_arr = {}
     ok = True
     if request.method == "GET":
         cart_arr = request.COOKIES.get("course")
         parse_cart = parse_cookieCart(cart_arr)
         if parse_cart['ok']:
-            info_arr = {}
             for c in parse_cart['result']:
                 curr_query = form_query(c, "schedule")
                 if curr_query['ok']:
@@ -240,4 +269,8 @@ def schedule_page(request):
             page = "not_found.html"
             ok = False
             context['msg'] = parse_cart['msg']
-    return render(request, page, context) 
+    context['ok'] = ok
+    wrapper = {}
+    wrapper['context'] = jsonpickle.encode(context)
+    wrapper['course_group'] = jsonpickle.encode(info_arr)
+    return render(request, page, wrapper) 
