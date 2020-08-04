@@ -196,14 +196,15 @@
     }
     // =========================================================================
     // 168 = 14hr * 12; 12 5-min-block per hr
-    var time_start = createArray(5, 168);
-    var time_end = createArray(5, 168);
-    var day_arr = ['Monday',];
+    var time_table = createArray(5, 180); // 180 = overkill
+    var day_arr = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    var day_arr_short = ["M", "T", "W", "T", "F"];
     var schedule_data = '{{ context|safe }}';
     var course_group = '{{ course_group|safe }}';
+    var time_map = new Map();
     function getScheduleData() {
-      schedule_data = JSON.parse(schedule_data)
-      course_group = JSON.parse(course_group)
+      schedule_data = JSON.parse(schedule_data);
+      course_group = JSON.parse(course_group);
       if (schedule_data.ok) {
         console.log(schedule_data); //DEBUG
         console.log(course_group); //DEBUG
@@ -236,7 +237,41 @@
       }
     };
     function onClickHandler(element) {
-      console.log("clicked " + element.id);
+      console.log("handler " + element.id);
+      // always assume map has the key (or crash)
+      // 0 -- day, 1 -- start time block, 2 -- diff block count
+      // see init for detail
+      var self_id = parseInt(element.id);
+      var curr_cordinate = time_map.get(self_id);
+      var curr_state = time_map.get(self_id + 100000); // boot lag way of getting status
+      var blocked_course = {};
+      var curr_block = "";
+      for (let x in curr_cordinate) {
+        for (let i = 0; i <= curr_cordinate[x][2]; i++) {
+          curr_block = time_table[curr_cordinate[x][0]][i + curr_cordinate[x][1]];
+          if (typeof curr_block != "undeinfed") {
+            console.log("HI2")
+            for (let y in curr_block) {
+              if (curr_block[y] != self_id) {
+                // if state = false, means about to become true, thus others' would be false
+                blocked_course[curr_block[y]] = curr_state; 
+              }
+            } 
+          }
+        } 
+      }
+      time_map.set(self_id + 100000, !curr_state);
+      for (let x in blocked_course) {
+        changeCheckBox(x, blocked_course[x]);
+      }
+    };
+    function changeSchedule(id, set_to) {
+
+    }
+    // set_to true for enable, false for disable
+    function changeCheckBox(id, set_to) {
+      console.log(set_to.toString() + " " + id.toString() + "_checkbox");
+      document.getElementById(id.toString() + "_checkbox").disabled = !set_to;
     };
     function initScheduleBar() {
       for (var key in course_group) {
@@ -258,18 +293,57 @@
           })
 
           for (var section in each_course) {
+            // ================================================== html related
             var section_base = document.createElement("p");
             var section_checkBox = document.createElement("input");
+            var curr_crn = each_course[section]["crn"]; 
             section_checkBox.setAttributes({
               "class": "w3-check",
               "type": "checkbox",
               "onclick": "onClickHandler(this)",
-              "id": (each_course[section]["crn"])
+              "id": curr_crn + "_checkbox"
             })
             var section_info = document.createElement("label")
             section_info.setAttribute("class", "w3-small")
-            section_info.textContent = (each_course[section]["lecture_type"] + " " + each_course[section]["time_start"] + "-" + each_course[section]["time_end"] + " " + each_course[section]["day_of_week"]);
-            section_info.setAttribute("for", each_course[section]["crn"] + "_checkbox")
+            section_info.setAttribute("for", curr_crn + "_checkbox")
+            section_info.textContent = (each_course[section]["lecture_type"] + " " + each_course[section]["time_start"] + "-" + each_course[section]["time_end"] + " ");
+
+            // ================================================== time_table related
+            var curr_time = each_course[section]["time_start"];
+            var curr_day = each_course[section]["day_of_week"];
+            if (curr_time != -1) { // -1 for not a time schedule, explained in parsing
+              curr_time = curr_time.split(":");
+              curr_day = parseInt(curr_day)
+              for (var i = 0; i < 5; i++) {
+                if ((curr_day >> i) & 1) {
+                  section_info.textContent += day_arr_short[i];
+                  // start at 8, each hr is 12 * 5-min block
+                  var time_start_block = ((parseInt(curr_time[0]) - 8) * 12) - 1; // hour, 0 based
+                  time_start_block += (parseInt(curr_time[1]) / 5); // min
+
+                  // end at time diff, retract 1 5-min block
+                  var count_diff = parseInt(each_course[section]["time_diff"]) - 1
+                  var time_end_block = count_diff + time_start_block
+
+                  if (typeof time_table[i][time_start_block] != "undefined") {
+                    time_table[i][time_start_block].push(curr_crn)
+                  } else {
+                    time_table[i][time_start_block] = [curr_crn]
+                  }
+                  if (typeof time_table[i][time_end_block] != "undefined") {
+                    time_table[i][time_end_block].push(curr_crn)
+                  } else {
+                    time_table[i][time_end_block] = [curr_crn]
+                  }
+                  if (time_map.has(curr_crn)) {
+                    time_map.get(curr_crn).push([i, time_start_block, count_diff])
+                  } else {
+                    time_map.set(curr_crn, [[i, time_start_block, count_diff]])
+                    time_map.set(curr_crn + 100000, false) // boot lag way of keeping status
+                  }
+                }
+              }
+            }
             section_info.appendChild(section_checkBox); // <-- input under label
             section_base.appendChild(section_info); // <-- label under p
             section_drop.append(section_base); // p under div drop
@@ -278,7 +352,18 @@
           document.getElementById('courseCheckBoxContainer').appendChild(button_base);
         }
       }
-    }
+      debug_timeTable();
+    };
+    function debug_timeTable() {
+      for (var i = 0; i < 5; i++) {
+        for (var j = 0; j < 168; j++) {
+          if (typeof time_table[i][j] != "undefined") {
+            console.log(j);
+            console.log(time_table[i][j]);   
+          }
+        }
+      }
+    };
     function getCookie(cname) {
         var name = cname + "=";
         var decodedCookie = decodeURIComponent(document.cookie);
