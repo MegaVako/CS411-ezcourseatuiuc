@@ -13,6 +13,7 @@
   <link type="text/x-scss" href="https://easycourseatuiuc.web.illinois.edu/main_page{% static 'schedule/assets/css/style.scss' %}" rel="stylesheet" media="screen">
   {% endcompress %}
 
+
   <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -86,71 +87,37 @@
       <ul>
         <li class="cd-schedule__group">
           <div class="cd-schedule__top-info"><span>Monday</span></div>
-          <ul>
-            {% for c in context.cart_info.Monday %}
-            <li class="cd-schedule__event">
-            <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
-                <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
-              </a>
-            </li>
-            {% endfor %}
+          <ul id="Monday_event">
           </ul>
         </li>
 
         <li class="cd-schedule__group">
           <div class="cd-schedule__top-info"><span>Tuesday</span></div>
-
-          <ul>
-
-            {% for c in cart_info.Tuesday %}
-            <li class="cd-schedule__event">
-            <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
-                <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
-              </a>
-            </li>
-            {% endfor %}
+          <ul id="Tuesday_event">
           </ul>
         </li>
 
         <li class="cd-schedule__group">
           <div class="cd-schedule__top-info"><span>Wednesday</span></div>
-
-          <ul>
-            {% for c in context.cart_info.Wednesday %}
-            <li class="cd-schedule__event">
-            <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
-                <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
-              </a>
-            </li>
-            {% endfor %}
+          <ul id="Wednesday_event">
           </ul>
         </li>
 
         <li class="cd-schedule__group">
           <div class="cd-schedule__top-info"><span>Thursday</span></div>
-
-          <ul>
-            {% for c in context.cart_info.Thursday %}
-            <li class="cd-schedule__event">
-            <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
-                <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
-              </a>
-            </li>
-            {% endfor %}
+          <ul id="Thursday_event">
           </ul>
         </li>
 
         <li class="cd-schedule__group">
           <div class="cd-schedule__top-info"><span>Friday</span></div>
 
-          <ul>
-            {% for c in context.cart_info.Friday %}
+          <ul id="Friday_event">
             <li class="cd-schedule__event">
-            <a data-start="{{ c.time_start }}" data-end="{{ c.time_end }}"  data-content="event-rowing-workout" data-event="event-{{ c.color }}" href="#0">
-                <em class="cd-schedule__name">{{ c.department }}{{ c.course_num }} {{ c.lecture_type }}</em>
+              <a data-start="09:00" data-end="10:00"  data-content="event-rowing-workout" data-event="event-1" href="#0">
+                <em class="cd-schedule__name">DEBUG</em>
               </a>
             </li>
-            {% endfor %}
           </ul>
         </li>
       </ul>
@@ -178,6 +145,7 @@
   </div> <!-- .cd-schedule -->
 </div>
   <script>
+    var slotHeight = document.getElementsByClassName("cd-schedule__top-info")[0].offsetHeight
     function dropDownFunc(clicked_id) {
         var x = document.getElementById(clicked_id);
         if (x.className.indexOf("w3-show") == -1) {
@@ -194,14 +162,25 @@
     function closeRightMenu() {
       document.getElementById("leftMenu").style.display = "none";
     }
+    Element.prototype.remove = function() {
+      this.parentElement.removeChild(this);
+    }
+    NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+      for(var i = this.length - 1; i >= 0; i--) {
+        if(this[i] && this[i].parentElement) {
+          this[i].parentElement.removeChild(this[i]);
+        }
+      }
+    }
     // =========================================================================
     // 168 = 14hr * 12; 12 5-min-block per hr
     var time_table = createArray(5, 180); // 180 = overkill
     var day_arr = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-    var day_arr_short = ["M", "T", "W", "T", "F"];
+    var day_arr_short = ["M", "T", "W", "R", "F"];
     var schedule_data = '{{ context|safe }}';
     var course_group = '{{ course_group|safe }}';
     var time_map = new Map();
+    var time_blackList = []
     function getScheduleData() {
       schedule_data = JSON.parse(schedule_data);
       course_group = JSON.parse(course_group);
@@ -227,7 +206,7 @@
     // function from https://stackoverflow.com/questions/12274748/setting-multiple-attributes-for-an-element-at-once-with-javascript
     Element.prototype.setAttributes = function (attrs) {
       for (var idx in attrs) {
-        if ((idx === 'styles' || idx === 'style') && typeof attrs[idx] === 'object') {
+        if ((idx === "styles" || idx === "style") && typeof attrs[idx] === 'object') {
           for (var prop in attrs[idx]){this.style[prop] = attrs[idx][prop];}
         } else if (idx === 'html') {
           this.innerHTML = attrs[idx];
@@ -236,37 +215,108 @@
         }
       }
     };
+    // assume currently is false
+    function checkOverlap(crn) {
+      var curr_cordinate = time_map.get(crn); // each event
+      for (var x in curr_cordinate) {
+        for (var i = 0; i <= curr_cordinate[x]["event_length"]; i++) {
+          curr_block = time_table[curr_cordinate[x]["dayOfWeek"]][i + curr_cordinate[x]["event_start"]];
+          if (typeof curr_block != "undeinfed") {
+            for (var y in curr_block) {
+              // if there's a course checked in the curr duration, then can't reset to true
+              if (curr_block[y] != crn && time_map.get(curr_block[y] + 100000)) {
+                return false; 
+              }
+            }
+          }
+        }
+      }
+      return true; 
+    }
     function onClickHandler(element) {
       console.log("handler " + element.id);
-      // always assume map has the key (or crash)
-      // 0 -- day, 1 -- start time block, 2 -- diff block count
-      // see init for detail
-      var self_id = parseInt(element.id);
-      var curr_cordinate = time_map.get(self_id);
-      var curr_state = time_map.get(self_id + 100000); // boot lag way of getting status
-      var blocked_course = {};
-      var curr_block = "";
-      for (let x in curr_cordinate) {
-        for (let i = 0; i <= curr_cordinate[x][2]; i++) {
-          curr_block = time_table[curr_cordinate[x][0]][i + curr_cordinate[x][1]];
-          if (typeof curr_block != "undeinfed") {
-            console.log("HI2")
-            for (let y in curr_block) {
-              if (curr_block[y] != self_id) {
-                // if state = false, means about to become true, thus others' would be false
-                blocked_course[curr_block[y]] = curr_state; 
-              }
-            } 
-          }
-        } 
-      }
-      time_map.set(self_id + 100000, !curr_state);
-      for (let x in blocked_course) {
-        changeCheckBox(x, blocked_course[x]);
+      console.log(parseInt(element.id));
+      if (!time_blackList.includes(parseInt(element.id))) {
+        // always assume map has the key (or crash)
+        // 0 -- day, 1 -- start time block, 2 -- diff block count
+        // see init for detail
+        var self_id = parseInt(element.id);
+        var curr_cordinate = time_map.get(self_id); // each event
+        var curr_state = time_map.get(self_id + 100000); // boot lag way of getting status
+        var blocked_course = {};
+        var curr_block = "";
+        for (let x in curr_cordinate) {
+          changeSchedule(self_id, curr_cordinate[x], !curr_state);
+          for (let i = 0; i <= curr_cordinate[x]["event_length"]; i++) {
+            curr_block = time_table[curr_cordinate[x]["dayOfWeek"]][i + curr_cordinate[x]["event_start"]];
+            if (typeof curr_block != "undeinfed") {
+              console.log("HI2")
+              for (let y in curr_block) {
+                if (curr_block[y] != self_id) {
+                  // if state = false, means about to become true, thus others' would be false
+                  /*
+                  var can_set = true;
+                  if (curr_state && !time_map.get(curr_block[y] + 100000)) { // check overlap before reset to true
+                    can_set = checkOverlap(curr_block[y]);              
+                  }
+                  if (can_set) {
+                    blocked_course[curr_block[y]] = curr_state; 
+                    console.log(curr_block[y]);
+                  }
+                  */
+                  blocked_course[curr_block[y]] = curr_state; 
+                  console.log(curr_block[y]);
+                }
+              } 
+            }
+          } 
+        }
+        time_map.set(self_id + 100000, !curr_state);
+        // TODO, check release overlap case
+        for (let x in blocked_course) { 
+          changeCheckBox(x, blocked_course[x]);
+        }
+      } else {
+        console.log("pure online " + element.id)
       }
     };
-    function changeSchedule(id, set_to) {
+    function changeSchedule(id, info, set_to) {
+      console.log("changeSchedule " + id + " " + set_to.toString());
+      var dayOfWeek = info["dayOfWeek"]; // int
+      var dayBlock = document.getElementById(day_arr[dayOfWeek] + "_event");
+      if (set_to) {
+        var curr_cordinate = time_map.get(id);
+        event_base = document.createElement("li"); 
+        var start_px = info["event_start"] / 12 * 100 - 1; 
+        var height_px = info["event_length"] / 12 * 100 + 1;
+        event_base.setAttributes({
+            "class": "cd-schedule__event " + id.toString() + "_event",
+            "id": (id.toString() + "_event"),
+            "style": ("top: " + start_px.toString() + "px; height: " + height_px.toString() + "px")
+        });
+        var curr_event = info['event_info'];
+        
+        var event_info = document.createElement("a");
+        event_info.setAttributes({
+          "data-start": curr_event["time_start"],
+          "data-end": curr_event["time_end"],
+          "data-content": "hi", // TODO
+          "data-event": "event-" + curr_event["color"].toString(),
+          "href": "#0"
+        });
+        var event_name = document.createElement("em");
+        //event_name.setAttribute("class": "w3-white")
+        event_name.textContent = (curr_event['department'] + " " + curr_event["course_num"].toString() + 
+            "\n" + curr_event["lecture_type"] + "\n" + id.toString());
 
+        event_info.appendChild(event_name);
+        event_base.appendChild(event_info); 
+        dayBlock.appendChild(event_base);
+        console.log("HIII")
+      } else {
+        console.log("remove " + "." + id.toString());
+        document.getElementById(id.toString() + "_event").remove();
+      }
     }
     // set_to true for enable, false for disable
     function changeCheckBox(id, set_to) {
@@ -296,7 +346,8 @@
             // ================================================== html related
             var section_base = document.createElement("p");
             var section_checkBox = document.createElement("input");
-            var curr_crn = each_course[section]["crn"]; 
+            var curr_crn = each_course[section]["crn"] + Math.floor(Math.random() * 100);
+            //var curr_crn = each_course[section]["crn"]; 
             section_checkBox.setAttributes({
               "class": "w3-check",
               "type": "checkbox",
@@ -336,13 +387,15 @@
                     time_table[i][time_end_block] = [curr_crn]
                   }
                   if (time_map.has(curr_crn)) {
-                    time_map.get(curr_crn).push([i, time_start_block, count_diff])
+                    time_map.get(curr_crn).push({"dayOfWeek": i, "event_start": time_start_block, "event_length": count_diff, "event_info": each_course[section]})
                   } else {
-                    time_map.set(curr_crn, [[i, time_start_block, count_diff]])
+                    time_map.set(curr_crn, [{"dayOfWeek": i, "event_start": time_start_block, "event_length": count_diff, "event_info": each_course[section]}])
                     time_map.set(curr_crn + 100000, false) // boot lag way of keeping status
                   }
                 }
               }
+            } else {
+              time_blackList.push(curr_crn)
             }
             section_info.appendChild(section_checkBox); // <-- input under label
             section_base.appendChild(section_info); // <-- label under p
@@ -392,7 +445,7 @@
     window.onload = getScheduleData; // !!! CAREFUL, call getScheduleData as soon as the site load
   </script>
   {% load static %}
-  <script src="/main_page/{% static '/schedule/assets/js/util.js' %}"></script> <!-- util functions included in the CodyHouse framework -->
-  <script src="/main_page/{% static '/schedule/assets/js/main.js' %}"></script> <!-- util functions included in the CodyHouse framework -->
+  <script src="/main_page{% static '/schedule/assets/js/util.js' %}"></script> <!-- util functions included in the CodyHouse framework -->
+  <script src="/main_page{% static '/schedule/assets/js/main.js' %}"></script> <!-- util functions included in the CodyHouse framework -->
 </body>
 </html>
