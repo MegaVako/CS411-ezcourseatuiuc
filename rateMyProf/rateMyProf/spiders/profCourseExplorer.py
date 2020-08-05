@@ -50,7 +50,8 @@ class profCourseExplorer(XMLFeedSpider):
         # parse section
         for section in response.xpath("//section[@id]"):
             crn = section.xpath(".//@id").get()
-            section_link = section.xpath(".//@href").get()
+            section_link = response.request.url[:-4] + "/" + crn + ".xml"
+            #section_link = section.xpath(".//@href").get()
             description = response.xpath('.//description/text()').get()
             course_sec_info = response.xpath('.//courseSectionInformation/text()').get()
             credit_hour_str = response.xpath('.//creditHours/text()').get()
@@ -74,14 +75,46 @@ class profCourseExplorer(XMLFeedSpider):
         section_type = response.xpath("//type[@code]/text()").get()
         if (section_type == None):
             self.logger.debug("NO TYPE FOUND!!!!!++++++++++++++++++++++++++++")
-        
-        #elif ('Lecture' in section_type):
         else:
-            item = RatemyprofItem()
+            instructor_arr = response.xpath('.//instructor')
+            if len(instructor_arr) != 0:
+                for prof in instructor_arr:
+                    item = RatemyprofItem()
+                    item['prof_fname'] = prof.xpath('.//@firstName').get()
+                    item['prof_lname'] = prof.xpath('.//@lastName').get()
+                    item['section_info'] = response.meta.get('course_sec_info')
+                    item['section_num'] = response.xpath('//sectionNumber/text()').get()
+                    item['section_type'] = section_type;
 
-            for prof in response.xpath('.//instructor'):
-                item['prof_fname'] = prof.xpath('.//@firstName').get()
-                item['prof_lname'] = prof.xpath('.//@lastName').get()
+                    item['course_name'] = response.meta.get('course_tittle')
+                    item['course_dept'] = response.meta.get('course_dept')
+                    item['course_num'] = response.meta.get('course_num')
+                    item['crn'] = response.meta.get('crn')
+                    item['course_semester'] = self.semester
+                    item['course_year'] = self.year
+                    item['course_description'] = response.meta.get('description')
+                    item['course_gened'] = response.meta.get('course_gened')
+                    item['course_credit_hour'] = response.meta.get('credit_hour')
+                    item['course_explorer_link'] = response.request.url
+
+                    item['course_hour_start'] = response.xpath("//start/text()").get()
+                    item['course_hour_end'] = response.xpath("//end/text()").get()
+                    item['course_date_start'] = response.xpath("//startDate/text()").get()
+                    if item['course_date_start'] != None:
+                        item['course_date_start'] = item['course_date_start'][:-1] # remove last char 'Z'
+                    item['course_date_end'] = response.xpath("//endDate/text()").get()
+                    if item['course_date_end'] != None:
+                        item['course_date_end'] = item['course_date_end'][:-1] # remove last char 'Z'
+                    item['course_dayOfWeek'] = response.xpath("//daysOfTheWeek/text()").get()
+                    item['course_location'] = response.xpath("//buildingName/text()").get()
+                    item['course_room_num'] = response.xpath("//roomNumber/text()").get()
+                    item['course_term'] = response.xpath("//partOfTerm/text()").get()
+
+                    yield item
+            else:
+                item = RatemyprofItem()
+                item['prof_fname'] = response.xpath('//@firstName').get()
+                item['prof_lname'] = response.xpath('//@lastName').get()
                 item['section_info'] = response.meta.get('course_sec_info')
                 item['section_num'] = response.xpath('//sectionNumber/text()').get()
                 item['section_type'] = section_type;
@@ -111,7 +144,3 @@ class profCourseExplorer(XMLFeedSpider):
                 item['course_term'] = response.xpath("//partOfTerm/text()").get()
 
                 yield item
-        #else:
-            #self.logger.debug("NOT A LEC")
-            #self.logger.debug(section_type)
-        pass
